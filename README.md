@@ -78,18 +78,6 @@ Specify the knowledge stack to process in `.env`, currently only supports epub
 ```sh
 python main.py
 ```
-#### Extract and Process EPUB Files
-```sh
-python epub_extract.py
-```
-#### Manage Knowledge Graph
-```sh
-python knowledge_graph.py
-```
-#### Generate Quizzes
-```sh
-python learning_canvas.py
-```
 
 ## Future Enhancements
 - Open UI integration

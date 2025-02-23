@@ -38,8 +38,7 @@ uv init --name neuro-trail
 
 ### Install Dependencies
 ```sh
-uv pip install openai langchain pydantic chromadb numpy pandas redis requests \
-ebooklib beautifulsoup4 neo4j sentence-transformers
+uv pip install -r requirements.txt
 pip install faiss-cpu --no-cache-dir  # Use faiss-gpu if required
 ```
 

@@ -14,7 +14,7 @@ NeuroTrail is an AI-powered learning system designed to enhance personalized lea
 ## Project Setup
 
 ### Prerequisites
-- Install `uv` (modern Python package manager):
+- Install `uv` (Python package manager):
   ```sh
   curl -LsSf https://astral.sh/uv/install.sh | sh
   ```
@@ -22,12 +22,6 @@ NeuroTrail is an AI-powered learning system designed to enhance personalized lea
   ```sh
   uv pip install --upgrade pip
   ```
-
-### Clone Repository
-```sh
-git clone https://github.com/yourusername/neuro-trail.git
-cd neuro-trail
-```
 
 ### Initialize the Project
 ```sh
@@ -43,10 +37,6 @@ pip install faiss-cpu --no-cache-dir  # Use faiss-gpu if required
 ```
 
 ### Set Up Configuration
-Create a `.env` file:
-```sh
-touch .env
-```
 Edit `.env` and add:
 ```
 NEO4J_URI=bolt://localhost:7687

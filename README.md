@@ -15,13 +15,7 @@ NeuroTrail is an AI-powered learning system designed to enhance personalized lea
 
 ### Prerequisites
 - Install `uv` (Python package manager):
-  ```sh
-  curl -LsSf https://astral.sh/uv/install.sh | sh
-  ```
-- Ensure `pip` is up-to-date:
-  ```sh
-  uv pip install --upgrade pip
-  ```
+- Install `ollama` (Pending Integration on OpenAI and other model providers)
 
 ### Initialize the Project
 ```sh
@@ -43,6 +37,7 @@ NEO4J_URI=bolt://localhost:7687
 NEO4J_USER=neo4j
 NEO4J_PASSWORD=passwoed
 BOOK_PATH=/absolute/path/to/epub-folder
+OLLAMA_URL="http://localhost:11434/api/generate"
 ```
 
 ### Folder Structure

@@ -16,6 +16,8 @@ NeuroTrail is an AI-powered learning system designed to enhance personalized lea
 ### Prerequisites
 - Install `uv` (Python package manager):
 - Install `ollama` (Pending Integration on OpenAI and other model providers)
+- Install `neo4j` (Graph DB)
+- Install `redis` (key-value store for user memory history)
 
 ### Initialize the Project
 ```sh

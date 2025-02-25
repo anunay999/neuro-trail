@@ -37,7 +37,7 @@ Edit `.env` and add:
 ```
 NEO4J_URI=bolt://localhost:7687
 NEO4J_USER=neo4j
-NEO4J_PASSWORD=passwoed
+NEO4J_PASSWORD=password
 BOOK_PATH=/absolute/path/to/epub-folder
 OLLAMA_URL="http://localhost:11434/api/generate"
 ```

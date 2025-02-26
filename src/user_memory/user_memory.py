@@ -1,7 +1,12 @@
 import redis
+from dotenv import load_dotenv
+
+load_dotenv()
+
+REDIS_PORT = os.getenv("REDIS_PORT")
 
 class UserMemory:
-    def __init__(self, host='localhost', port=6379, db=0):
+    def __init__(self, host='localhost', port=REDIS_PORT, db=0):
         self.client = redis.Redis(host=host, port=port, db=db)
 
     def update_progress(self, user_id, book_title):

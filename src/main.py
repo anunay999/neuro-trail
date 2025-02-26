@@ -7,8 +7,6 @@ load_dotenv()
 
 BOOK_PATH=os.getenv("BOOK_PATH")
 
-
-
 def interact(learning_canvas: LearningCanvas):
     while True:
         mode = input("Choose mode: (s)earch, (a)nswer query, (h)istory, (q)uit: ").strip().lower()
@@ -46,20 +44,9 @@ def process_epub_files(folder_path):
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description="Process a book file.")
-    
-    # Add an optional command-line argument
-    parser.add_argument("--book-path", type=str, help="Path to the book file")
-    
-    args = parser.parse_args()
-
-    # Use the command-line argument if provided, otherwise fallback to env variable
-    book_path = args.book_path
-
-
     canvas = LearningCanvas()
     try:
-        build_knowledge(canvas, book_path)
+        build_knowledge(canvas, BOOK_PATH)
         interact(canvas)
     except Exception as e:
         print(e)

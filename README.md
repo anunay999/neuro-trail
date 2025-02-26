@@ -14,7 +14,8 @@ NeuroTrail is an AI-powered learning system designed to enhance personalized lea
 ## Project Setup
 
 ### Prerequisites
-- **Ensure the required EPUB files are placed in the books folder before building the Docker image.**
+- **Ensure the required EPUB files are placed in the books folder before building the Docker image.** 
+- default Ollama model is deepseek-r1:1.5b. To use a different model, update the environment variables in the docker-compose.yml file accordingly.
 
 ### Initialize the Project with Docker
 

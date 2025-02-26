@@ -13,7 +13,6 @@ dependencies = [
     "ollama>=0.4.7",
     "argparse>=1.4.0",
     "dotenv>=0.9.9",
-    "sentence-transformers>=3.4.1",
 ]
 
 [project.packages]

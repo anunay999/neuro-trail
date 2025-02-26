@@ -1,7 +1,24 @@
 [project]
 name = "neuro-trail"
 version = "0.1.0"
-description = "Add your description here"
+description = "Personalized Memory Augmented Learning"
 readme = "README.md"
-requires-python = ">=3.12"
-dependencies = []
+requires-python = ">=3.11"
+dependencies = [
+    "ebooklib>=0.18",
+    "faiss-cpu>=1.10.0",
+    "neo4j>=5.28.1",
+    "numpy>=2.2.3",
+    "redis>=5.2.1",
+    "ollama>=0.4.7",
+    "argparse>=1.4.0",
+    "dotenv>=0.9.9",
+    "sentence-transformers>=3.4.1",
+]
+
+[project.packages]
+find = {where = ["src"]}
+
+[tool.uv.workspace]
+members = ["venv"]
+

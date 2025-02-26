@@ -14,55 +14,26 @@ NeuroTrail is an AI-powered learning system designed to enhance personalized lea
 ## Project Setup
 
 ### Prerequisites
-- Install `uv` (Python package manager):
-- Install `ollama` (Pending Integration on OpenAI and other model providers)
-- Install `neo4j` (Graph DB)
-- Install `redis` (key-value store for user memory history)
+- **Ensure the required EPUB files are placed in the books folder before building the Docker image.**
 
-### Initialize the Project
+### Initialize the Project with Docker
+
+Run the following command to build and start the project:
+
 ```sh
-uv venv .venv
-source .venv/bin/activate  # Windows: `.venv\Scripts\activate`
-uv init --name neuro-trail
+docker-compose up --build
 ```
+### Interact with the Application
+Currently, the app runs in the terminal (UI integration is in progress). Once the Docker setup is complete, access the application by running:
 
-### Install Dependencies
 ```sh
-uv pip install -r requirements.txt
-pip install faiss-cpu --no-cache-dir  # Use faiss-gpu if required
+docker-compose run python_app bash
 ```
 
-### Set Up Configuration
-Edit `.env` and add:
-```
-NEO4J_URI=bolt://localhost:7687
-NEO4J_USER=neo4j
-NEO4J_PASSWORD=password
-BOOK_PATH=/absolute/path/to/epub-folder
-OLLAMA_URL="http://localhost:11434/api/generate"
-```
+Once inside the container, start the app with:
 
-### Folder Structure
-```
-neuro_trail/
-├── LICENSE               # Project license
-├── README.md             # Documentation and setup guide
-├── epub_extract.py       # Handles EPUB ingestion and processing
-├── knowledge_graph.py    # Manages knowledge graph integration
-├── learning_canvas.py    # Interactive learning canvas with LLM
-├── llm.py                # LLM interaction and prompt handling
-├── main.py               # Entry point for running the application
-├── pyproject.toml        # Project configuration
-├── requirements.txt      # List of dependencies
-├── user_memory.py        # Persistent memory module for tracking learning
-└── vector_store.py       # Manages vector embeddings for retrieval
-```
-
-### Running the Project
-Specify the knowledge stack to process in `.env`, currently only supports epub
-#### Start the Main Application
-```sh
-python main.py
+```sh 
+uv run main.py
 ```
 
 ## Future Enhancements

@@ -1,13 +1,22 @@
 import redis
 from dotenv import load_dotenv
+import os
 
 load_dotenv()
 
-REDIS_PORT = os.getenv("REDIS_PORT")
+# Use Docker's service name instead of localhost
+REDIS_HOST = os.getenv("REDIS_HOST", "redis_service")
+REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
+
 
 class UserMemory:
     def __init__(self, host='localhost', port=REDIS_PORT, db=0):
-        self.client = redis.Redis(host=host, port=port, db=db)
+        self.client = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, decode_responses=True)
+        try:
+            self.client.ping()
+            print("✅ Connected to Redis!")
+        except redis.ConnectionError:
+            print(f"❌ Failed to connect to Redis at {REDIS_HOST}:{REDIS_PORT}")
 
     def update_progress(self, user_id, book_title):
         self.client.sadd(f"user:{user_id}:books", book_title)

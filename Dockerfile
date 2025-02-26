@@ -9,14 +9,15 @@ WORKDIR /app
 # Install tuv package manager
 RUN pip install uv
 
+# Copy the rest of your application code into the container
+COPY . .
+
 # Install the dependencies
 RUN uv sync
 
-# Copy the rest of your application code into the container
-COPY . .
 
 # Set the working directory to the src directory
 WORKDIR /app/src
 
 # Set the default command for the container
-CMD ["python", "main.py"]
+CMD ["uv", "run", "main.py"]

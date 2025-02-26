@@ -62,8 +62,9 @@ class LearningCanvas:
         # Ask the user to confirm if they understood
         understood = input("\nDid you understand the answer? (y/n): ").strip().lower()
         if understood == 'y':
-            summary = input("Great! Please provide a brief summary of what you learned: ")
-            self.memory.update_learning_summary(user_id, summary)
+            # TODO: quiz
+            # summary = input("Great! Please provide a brief summary of what you learned: ")
+            self.memory.update_learning_summary(user_id, answer)
             print("Learning summary updated.")
         else:
             feedback = input("Can you provide feedback to improve the response: ")

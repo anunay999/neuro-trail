@@ -1,10 +1,12 @@
-from knowledge_graph import KnowledgeGraph
-from vector_store import VectorStore
-from user_memory import UserMemory
-from epub_extract import extract_epub
-from llm import query_ollama
 import os
+
 from dotenv import load_dotenv
+
+from epub_extract import extract_epub
+from knowledge_graph import KnowledgeGraph
+from llm import query_ollama
+from user_memory import UserMemory
+from vector_store import VectorStore
 
 load_dotenv()
 
@@ -23,20 +25,22 @@ class LearningCanvas:
     def add_epub(self, epub_path, user_id="user_123"):
         # Process EPUB file
         metadata, full_text, chapters = extract_epub(epub_path)
-        print(f"Loaded '{metadata['title']}' by {metadata['author']}. Chapters found: {len(chapters)}")
+        print(
+            f"Loaded '{metadata['title']}' by {metadata['author']}. Chapters found: {len(chapters)}"
+        )
 
         # Update Knowledge Graph
-        self.kg.add_book(metadata['title'], metadata['author'])
+        self.kg.add_book(metadata["title"], metadata["author"])
         if chapters:
-            self.kg.add_chapters(metadata['title'], chapters)
-        self.kg.add_user_interaction(user_id, metadata['title'])
+            self.kg.add_chapters(metadata["title"], chapters)
+        self.kg.add_user_interaction(user_id, metadata["title"])
 
         # Update Vector Store with text chunks (using paragraph splitting)
         paragraphs = [p.strip() for p in full_text.split("\n\n") if len(p.strip()) > 50]
         self.vector_store.add_text_chunks(paragraphs)
 
         # Update User Memory with progress
-        self.memory.update_progress(user_id, metadata['title'])
+        self.memory.update_progress(user_id, metadata["title"])
         print("EPUB processed and added to system.")
 
     def search_query(self, query):
@@ -61,14 +65,14 @@ class LearningCanvas:
 
         # Ask the user to confirm if they understood
         understood = input("\nDid you understand the answer? (y/n): ").strip().lower()
-        if understood == 'y':
+        if understood == "y":
             # TODO: quiz
             # summary = input("Great! Please provide a brief summary of what you learned: ")
             self.memory.update_learning_summary(user_id, answer)
             print("Learning summary updated.")
         else:
             feedback = input("Can you provide feedback to improve the response: ")
-            user_prompt  = f"goal:improve the response based on user feedback\n Current Answer: {answer}\n\nuser feedback on improvement:\n{feedback}\n incorporate the feedback and improve the current response"
+            user_prompt = f"goal:improve the response based on user feedback\n Current Answer: {answer}\n\nuser feedback on improvement:\n{feedback}\n incorporate the feedback and improve the current response"
             self.answer_query(user_prompt)
         return answer
 

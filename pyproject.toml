@@ -16,6 +16,7 @@ dependencies = [
     "sentence-transformers>=3.4.1",
     "streamlit>=1.42.2",
     "embedchain>=0.0.81",
+    "ruff>=0.9.7",
 ]
 
 [project.packages]
@@ -24,3 +25,17 @@ find = {where = ["src"]}
 [tool.uv.workspace]
 members = ["venv"]
 
+[tool.ruff]
+lint.select = [ "E", "F", "I", "TID251" ]
+lint.ignore = [ "E501" ]
+line-length = 88
+indent-width = 4
+extend-include = ["*.ipynb"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+docstring-code-format = true
+docstring-code-line-length = "dynamic"

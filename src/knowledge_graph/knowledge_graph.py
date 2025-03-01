@@ -1,5 +1,6 @@
 from neo4j import GraphDatabase
 
+
 # -------------------------------------------
 # Build Knowledge graph on Neo4j
 # -------------------------------------------
@@ -42,4 +43,9 @@ class KnowledgeGraph:
         RETURN u, b
         """
         with self.driver.session() as session:
-            session.run(query, user_id=user_id, book_title=book_title, interaction_type=interaction_type)
+            session.run(
+                query,
+                user_id=user_id,
+                book_title=book_title,
+                interaction_type=interaction_type,
+            )

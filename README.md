@@ -46,6 +46,16 @@ uv run main.py
 - Expanded document support (PDFs, DOCX)
 - AI-driven feedback refinement
 
+## Alternate settings
+### Existing ollama local setup
+update the ollama volume section in docker-compose with the following line
+```
+- /Users/nitin.surya/.ollama/:/root/.ollama
+```
+
+## Resources
+- [Intro Blog](https://medium.com/@anunayaatipamula/building-a-memory-augmented-learning-companion-from-idea-to-implementation-49970ac6da16)
+
 ## Contribution
 Feel free to fork, modify, and submit PRs to improve the project!
 

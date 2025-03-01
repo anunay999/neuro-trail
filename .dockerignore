@@ -1,0 +1,56 @@
+# Python-related files
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.git
+.github
+.mypy_cache
+.pytest_cache
+.hypothesis
+
+# Docker-related files
+Dockerfile
+.dockerignore
+
+# Editor-specific files
+.vscode/
+.codegenie
+.idea/
+*.swp
+*.swo
+*~
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Project-specific files (adjust as needed)
+*.md
+LICENSE
+tests/
+docs/
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Development and local configuration files
+.env
+*.local
+*.dev

@@ -1,6 +1,6 @@
-from sentence_transformers import SentenceTransformer
 import faiss
 import numpy as np
+from sentence_transformers import SentenceTransformer
 
 
 class VectorStore:
@@ -18,6 +18,8 @@ class VectorStore:
 
     def search(self, query, top_k=3):
         query_embedding = self.model.encode([query])
-        distances, indices = self.index.search(np.array(query_embedding, dtype=np.float32), top_k)
+        distances, indices = self.index.search(
+            np.array(query_embedding, dtype=np.float32), top_k
+        )
         results = [self.chunk_mapping[idx] for idx in indices[0]]
         return results

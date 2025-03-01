@@ -1,4 +1,5 @@
 import os
+
 import ebooklib
 from ebooklib import epub
 
@@ -32,8 +33,8 @@ def extract_epub(epub_path):
     book = epub.read_epub(epub_path)
 
     # Extract metadata
-    title_list = book.get_metadata('DC', 'title')
-    author_list = book.get_metadata('DC', 'creator')
+    title_list = book.get_metadata("DC", "title")
+    author_list = book.get_metadata("DC", "creator")
     title = title_list[0][0] if title_list else os.path.basename(epub_path)
     author = author_list[0][0] if author_list else "Unknown Author"
 
@@ -42,9 +43,9 @@ def extract_epub(epub_path):
     for item in book.get_items():
         if item.get_type() == ebooklib.ITEM_DOCUMENT:
             try:
-                part = item.get_body_content().decode('utf-8')
+                part = item.get_body_content().decode("utf-8")
             except Exception:
-                part = item.get_content().decode('utf-8', errors='ignore')
+                part = item.get_content().decode("utf-8", errors="ignore")
             text_parts.append(part)
     full_text = "\n".join(text_parts)
 
@@ -60,5 +61,7 @@ def extract_epub(epub_path):
             else:
                 chapter_title = str(chap)
             processed.append(chapter_title)
-        chapters = [{"title": chap, "seq": idx + 1} for idx, chap in enumerate(processed)]
+        chapters = [
+            {"title": chap, "seq": idx + 1} for idx, chap in enumerate(processed)
+        ]
     return {"title": title, "author": author}, full_text, chapters

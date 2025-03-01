@@ -1,3 +1,3 @@
-from .models import ModelProvider, Model
+from .models import Model, ModelProvider
 
 __all__ = ["ModelProvider", "Model"]

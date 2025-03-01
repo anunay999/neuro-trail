@@ -1,6 +1,8 @@
-import streamlit as st
 import os
-from enums import ModelProvider, Model
+
+import streamlit as st
+
+from enums import Model, ModelProvider
 
 
 def sidebar():
@@ -16,7 +18,7 @@ def sidebar():
     provider_option = st.sidebar.selectbox(
         "Select Model Provider",
         options=[provider.value for provider in ModelProvider],
-        index=0
+        index=0,
     )
 
     # Get Enum reference for provider
@@ -25,21 +27,19 @@ def sidebar():
     # API Key Input (or Host URL for Ollama)
     if selected_provider in {ModelProvider.OPENAI, ModelProvider.GOOGLE}:
         api_key_name = selected_provider.api_key_env_var
-        api_key = st.sidebar.text_input(
-            f"Enter {api_key_name}", type="password")
+        api_key = st.sidebar.text_input(f"Enter {api_key_name}", type="password")
         if api_key:
             os.environ[api_key_name] = api_key
     elif selected_provider == ModelProvider.OLLAMA:
         ollama_host = st.sidebar.text_input(
-            "Enter Ollama Host URL (http://localhost:11434)")
+            "Enter Ollama Host URL (http://localhost:11434)"
+        )
         os.environ["OLLAMA_HOST"] = ollama_host
 
     # Model Selection
-    available_models = [
-        model for model in Model if model.provider == selected_provider]
+    available_models = [model for model in Model if model.provider == selected_provider]
     selected_model = st.sidebar.selectbox(
-        "Select Model",
-        options=[model.model_name for model in available_models]
+        "Select Model", options=[model.model_name for model in available_models]
     )
 
     # Store the selected model in session state

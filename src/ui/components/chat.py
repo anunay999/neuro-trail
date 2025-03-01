@@ -1,4 +1,5 @@
 import streamlit as st
+
 from llm import get_llm
 
 
@@ -17,25 +18,23 @@ def chat_ui():
         st.session_state["chat_history"] = []
 
     # Chat input
-    user_input = st.chat_input(
-        "Ask me anything..")
+    user_input = st.chat_input("Ask me anything..")
 
     if user_input:
-
         # Get LLM instance
         llm = get_llm(model=model.model_name)
 
         # Query model
         with st.spinner("Generating response..."):
             response = llm(
-                messages=[{"role": "user", "content": user_input}],
-                temperature=0.7)
+                messages=[{"role": "user", "content": user_input}], temperature=0.7
+            )
 
         # Update chat history
+        st.session_state["chat_history"].append({"role": "user", "content": user_input})
         st.session_state["chat_history"].append(
-            {"role": "user", "content": user_input})
-        st.session_state["chat_history"].append(
-            {"role": "assistant", "content": response})
+            {"role": "assistant", "content": response}
+        )
 
     # Display chat history
     for message in st.session_state["chat_history"]:

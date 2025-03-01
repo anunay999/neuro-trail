@@ -1,9 +1,10 @@
-from enum import Enum
 import os
+from enum import Enum
 
 
 class ModelProvider(Enum):
     """Enum representing model providers."""
+
     OPENAI = "OpenAI"
     GOOGLE = "Google"
     OLLAMA = "Ollama"
@@ -13,12 +14,13 @@ class ModelProvider(Enum):
         """Dynamically get the API key environment variable name."""
         return {
             ModelProvider.OPENAI: "OPENAI_API_KEY",
-            ModelProvider.GOOGLE: "GEMINI_API_KEY"
+            ModelProvider.GOOGLE: "GEMINI_API_KEY",
         }[self]
 
 
 class Model(Enum):
     """Enum mapping models to providers."""
+
     GPT_4O = ("openai/gpt-4o", ModelProvider.OPENAI)
     GPT_3_5 = ("openai/gpt-3.5-turbo", ModelProvider.OPENAI)
     GEMINI_PRO = ("gemini/gemini-1.5-pro", ModelProvider.GOOGLE)

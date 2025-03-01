@@ -13,11 +13,13 @@ RUN apt-get update && apt-get install -y curl
 RUN pip install uv
 
 # Copy the rest of your application code into the container
-COPY . .
+COPY pyproject.toml uv.lock .
 
 # Install the dependencies
-RUN uv sync
+ENV UV_PROJECT_ENVIRONMENT="/usr/local/"
+RUN uv sync --locked
 
+COPY . .
 
 # Set the working directory to the src directory
 WORKDIR /app/src

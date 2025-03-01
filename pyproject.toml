@@ -15,6 +15,7 @@ dependencies = [
     "dotenv>=0.9.9",
     "sentence-transformers>=3.4.1",
     "ruff>=0.9.7",
+    "tenacity>=9.0.0",
 ]
 
 [project.packages]

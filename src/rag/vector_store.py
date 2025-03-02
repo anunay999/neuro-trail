@@ -5,7 +5,8 @@ from chromadb import PersistentClient
 import faiss
 import litellm
 import numpy as np
-from src.enums.models import Provider, EmbeddingModel
+from enums.models import Provider, EmbeddingModel
+from typing import Union
 
 
 class VectorStore:
@@ -59,22 +60,30 @@ class VectorStore:
         self.collection = self.chroma_client.get_or_create_collection(
             name=collection_name)
 
-    def _get_embedding(self, text_chunks: List[str]) -> np.ndarray:
+    def _get_embedding_with_retries(self, text_chunks: Union[str, List[str]], retries=3) -> np.ndarray:
         """Generates embeddings for a list of text chunks."""
+        if isinstance(text_chunks, str):
+            text_chunks = [text_chunks]
+
         if self.embedding_provider:
-            response = litellm.embedding(
-                input=text_chunks,
-                model=self.embedding_model.model_name,
-                api_base=self.api_base if self.embedding_provider == Provider.OLLAMA else None
-            )
-            embeddings = [item["embedding"] for item in response["data"]]
-            embeddings_np = np.array(embeddings, dtype=np.float32)
+            try:
+                response = litellm.embedding(
+                    input=text_chunks,
+                    model=self.embedding_model.model_name,
+                    api_base=self.api_base if self.embedding_provider == Provider.OLLAMA else None
+                )
+                embeddings = [item["embedding"] for item in response["data"]]
+                embeddings_np = np.array(embeddings, dtype=np.float32)
 
-            if self.dimension is None:
-                self.dimension = embeddings_np.shape[1]
-                self.index = faiss.IndexFlatL2(self.dimension)
+                if self.dimension is None:
+                    self.dimension = embeddings_np.shape[1]
+                    self.index = faiss.IndexFlatL2(self.dimension)
 
-            return embeddings_np
+                return embeddings_np
+            except litellm.APIConnectionError as e:
+                print(f"API Connection Error: {e} retrying...")
+                if retries > 0:
+                    return self._get_embedding_with_retries(text_chunks, retries - 1)
 
         else:
             raise ValueError(
@@ -117,15 +126,20 @@ class VectorStore:
 
     def search(self, query: str, top_k: int = 3, metadata_filter: Optional[Dict] = None) -> List[Dict]:
         """Searches the vector store for the most similar chunks to the query."""
-        query_embedding = self._get_embedding([query])
+        query_embedding = self._get_embedding_with_retries(query)
 
         # Step 1: Query ChromaDB to get relevant documents based on metadata filter
-        chroma_results = self.collection.query(
-            query_embeddings=query_embedding.tolist(),
-            where=metadata_filter if metadata_filter else {},
-            # Fetch more from Chroma for FAISS refinement
-            n_results=min(top_k * 5, self.collection.count())
-        )
+        chroma_query_params = {
+            "query_embeddings": query_embedding.tolist(),
+            # Fetch more from Chroma for refinement
+            "n_results": min(top_k * 5, self.collection.count())
+        }
+
+        # Only add `where` if `metadata_filter` is not empty
+        if metadata_filter:
+            chroma_query_params["where"] = metadata_filter
+
+        chroma_results = self.collection.query(**chroma_query_params)
 
         if not chroma_results["ids"][0]:  # Handle empty results
             return []
@@ -170,32 +184,3 @@ class VectorStore:
             name="vector_store_collection")
         if self.dimension is not None:
             self.index = faiss.IndexFlatL2(self.dimension)
-
-
-# Example usage:
-if __name__ == "__main__":
-    os.environ["OPENAI_API_KEY"] = "your-openai-key"
-    os.environ["OLLAMA_HOST"] = "http://localhost:11434"
-
-    # Ollama Example
-    vector_store_ollama = VectorStore(
-        embedding_model_name="ollama/nomic-embed-text:latest", embedding_provider="ollama")
-    vector_store_ollama.add_text_chunks(
-        ["This is a sentence about apples.", "Oranges are sweet."], chapter="Fruits")
-    print("Ollama Search:", vector_store_ollama.search(
-        "Tell me about oranges", top_k=2))
-
-    # OpenAI Example
-    vector_store_openai = VectorStore(
-        embedding_model_name="openai/text-embedding-ada-002", embedding_provider="openai")
-    vector_store_openai.add_text_chunks(["Paris is in France.", "Rome is in Italy."], metadata=[
-                                        {"location": "Paris"}, {"location": "Rome"}])
-    print("OpenAI Search:", vector_store_openai.search("Where is Rome?", top_k=1))
-
-    # LiteLLM Example
-    vector_store_litellm = VectorStore(
-        embedding_model_name="ollama/nomic-embed-text:latest", embedding_provider="litellm")
-    vector_store_litellm.add_text_chunks(
-        ["LiteLLM is a great tool.", "Ollama runs local AI models."], chapter="AI")
-    print("LiteLLM Search:", vector_store_litellm.search(
-        "Tell me about LiteLLM", top_k=2))

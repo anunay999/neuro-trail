@@ -53,6 +53,7 @@ class Model(Enum):
     OLLAMA_LLAMA3_2 = ("ollama/llama3.2", Provider.OLLAMA)
     OLLAMA_MISTRAL = ("ollama/mistral", Provider.OLLAMA)
     OLLAMA_PHI4 = ("ollama/phi4", Provider.OLLAMA)
+    OLLAMA_QWEN_2_5 = ("ollama/qwen2.5-7b-instruct", Provider.OLLAMA)
 
     def __init__(self, model_name: str, provider: Provider):
         self.model_name = model_name

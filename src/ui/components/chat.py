@@ -4,7 +4,8 @@ from learning_canvas import LearningCanvas
 
 
 def chat_ui(canvas: LearningCanvas):
-    st.title("Neuro Trail 🧠 - Memory Augmented Learning")
+    st.title("Neuro Trail 🧠")
+    st.subheader("Memory Augmented Learning")
 
     # Check if a model is selected
     if "selected_model" not in st.session_state:
@@ -27,8 +28,7 @@ def chat_ui(canvas: LearningCanvas):
         st.session_state["chat_history"].append(
             {"role": "user", "content": user_input})
         st.session_state["chat_history"].append(
-            {"role": "assistant", "content": response}
-        )
+            {"role": "assistant", "content": response})
 
     # Display chat history
     for message in st.session_state["chat_history"]:

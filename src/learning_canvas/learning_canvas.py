@@ -4,7 +4,7 @@ import tempfile
 from dotenv import load_dotenv
 
 # Import the updated embedding model enum
-from enums import EmbeddingModel, Model, Provider
+from enums import EmbeddingModel, Model
 from epub_extract import extract_epub
 from knowledge_graph import KnowledgeGraph
 from llm import get_llm
@@ -50,6 +50,7 @@ class LearningCanvas:
 
         try:
             # Process EPUB file using the extracted path
+            print(temp_file_path)
             metadata, full_text, chapters = extract_epub(temp_file_path)
             print(
                 f"Loaded '{metadata['title']}' by {metadata['author']}. Chapters found: {len(chapters)}"

@@ -9,30 +9,30 @@ from learning_canvas import LearningCanvas
 def process_uploaded_files(canvas: LearningCanvas):
     """Function to process uploaded EPUB, DOCX, and PDF files."""
     if not st.session_state["uploaded_files"]:
-        st.sidebar.warning("⚠️ No files to process.")
+        st.warning("⚠️ No files to process.")
         return
 
     # Indicate processing start
     st.session_state["processing_status"] = "Processing files... ⏳"
-    st.sidebar.info("Processing files... Please wait.")
+    st.info("Processing files... Please wait.")
 
     for uploaded_file in st.session_state["uploaded_files"]:
         file_extension = uploaded_file.name.split(".")[-1].lower()
 
         if file_extension == "epub":
-            st.sidebar.info(f"📖 Processing EPUB: {uploaded_file.name}")
+            st.info(f"📖 Processing EPUB: {uploaded_file.name}")
             # Call the add_epub function with file-like object
             # Pass file object directly
             canvas.add_epub(uploaded_file, user_id="user_123")
 
         elif file_extension in ["docx", "pdf"]:
-            st.sidebar.info(
+            st.info(
                 f"📄 Skipping {uploaded_file.name} (Handler not implemented yet)")
             # Placeholder for future DOCX/PDF handling
 
     # Update processing status
     st.session_state["processing_status"] = "✅ Files processed successfully!"
-    st.sidebar.success(st.session_state["processing_status"])
+    st.success(st.session_state["processing_status"])
 
 
 def initialize_session_state():
@@ -123,37 +123,39 @@ def handle_api_key_input(provider):
         return ollama_host
 
 
-def handle_file_upload():
+@st.dialog(title="Upload Knowledge", width="large")
+def handle_file_upload(canvas: LearningCanvas):
     """Handles file upload functionality."""
-    with st.sidebar.expander(":file_folder: Upload Documents", expanded=True):
-        uploaded_file = st.file_uploader(
+    with st.expander(":file_folder: Upload Documents", expanded=True):
+        uploaded_files = st.file_uploader(
             "Upload a document (EPUB, DOCX, PDF)",
+            accept_multiple_files=True,
             type=["epub", "docx", "pdf"],
             help="Supports EPUB, DOCX, and PDF formats",
         )
 
-        if uploaded_file and uploaded_file.name not in [f.name for f in st.session_state["uploaded_files"]]:
-            st.session_state["uploaded_files"].append(uploaded_file)
+        for uploaded_file in uploaded_files:
+            if uploaded_file and uploaded_file.name not in [f.name for f in st.session_state["uploaded_files"]]:
+                st.session_state["uploaded_files"].append(uploaded_file)
 
         if st.session_state["uploaded_files"]:
             st.markdown("### Uploaded Files")
             for file in st.session_state["uploaded_files"]:
                 st.success(f"✅ {file.name}")
+            st.button("Process files",
+                      on_click=process_uploaded_files, args=(canvas, ))
 
 
-def handle_processing_button(canvas):
+def handle_build_knowledge_button(canvas):
     """Handles the knowledge-building process button."""
-    process_disabled = len(st.session_state["uploaded_files"]) == 0
-    st.sidebar.button(
+    if st.sidebar.button(
         "🚀 Build Knowledge",
-        disabled=process_disabled,
         type="primary",
-        on_click=process_uploaded_files,
-        args=(canvas,)  # Calls function when clicked
-    )
+    ):
+        handle_file_upload(canvas)
 
     if st.session_state["processing_status"]:
-        st.sidebar.success(st.session_state["processing_status"])
+        st.success(st.session_state["processing_status"])
 
 
 def sidebar(canvas: "LearningCanvas"):
@@ -170,8 +172,8 @@ def sidebar(canvas: "LearningCanvas"):
     configure_embedding(same_provider)
 
     # Handle file upload & processing
-    handle_file_upload()
-    handle_processing_button(canvas)
+    # handle_file_upload()
+    handle_build_knowledge_button(canvas)
 
     canvas.set_model(st.session_state["selected_model"],
                      st.session_state["selected_embedding_model"])

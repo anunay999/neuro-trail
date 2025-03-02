@@ -3,12 +3,12 @@ import tempfile
 
 from dotenv import load_dotenv
 
-from enums import EmbeddingModel  # Import the updated embedding model enum
+# Import the updated embedding model enum
+from enums import EmbeddingModel, Model, Provider
 from epub_extract import extract_epub
 from knowledge_graph import KnowledgeGraph
 from llm import get_llm
 from rag import VectorStore
-from user_memory import UserMemory
 
 load_dotenv()
 
@@ -21,12 +21,11 @@ class LearningCanvas:
     def __init__(self):
         # Initialize components (adjust connection details as needed)
         self.kg = KnowledgeGraph(NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD)
-        self.memory = UserMemory()
         self.model = None
         self.embedding_model = None
         self.vector_store = None  # Initialized later after model is set
 
-    def set_model(self, model, embedding_model):
+    def set_model(self, model: Model, embedding_model: EmbeddingModel):
         """
         Sets the LLM model and embedding model dynamically.
         """
@@ -35,11 +34,8 @@ class LearningCanvas:
 
         # Initialize the Vector Store with the selected embedding model
         self.vector_store = VectorStore(
-            embedding_model_name=self.embedding_model.model_name,
-            # Get the provider name as string
-            embedding_provider=self.embedding_model.provider.value,
-            api_base=os.getenv(
-                "OLLAMA_HOST") if self.embedding_model.provider == EmbeddingModel.OLLAMA else None
+            embedding_model=self.embedding_model,
+            chapter_mode=True
         )
 
     def add_epub(self, epub_file, user_id="user_123"):
@@ -72,7 +68,7 @@ class LearningCanvas:
                 paragraphs, chapter=metadata["title"])
 
             # Update User Memory with progress
-            self.memory.update_progress(user_id, metadata["title"])
+            # TODO: Implement user memory update
             print("EPUB processed and added to system.")
 
         finally:
@@ -115,13 +111,8 @@ class LearningCanvas:
         """
         Retrieves the user's learning history.
         """
-        progress = self.memory.get_history(user_id)
-        learned = self.memory.get_learning_history(user_id)
-
-        print("Books read:", progress)
-        print("Learning summaries:")
-        for idx, summary in enumerate(learned, 1):
-            print(f"{idx}. {summary}")
+        # TODO : Add knowledge graph for user memory
+        pass
 
     def close(self):
         """Closes connections to any resources."""

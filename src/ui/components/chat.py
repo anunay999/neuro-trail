@@ -1,6 +1,6 @@
 import streamlit as st
 
-from src.learning_canvas import LearningCanvas
+from learning_canvas import LearningCanvas
 
 
 def chat_ui(canvas: LearningCanvas):

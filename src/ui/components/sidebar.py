@@ -172,3 +172,6 @@ def sidebar(canvas: "LearningCanvas"):
     # Handle file upload & processing
     handle_file_upload()
     handle_processing_button(canvas)
+
+    canvas.set_model(st.session_state["selected_model"],
+                     st.session_state["selected_embedding_model"])

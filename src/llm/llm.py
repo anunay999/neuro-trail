@@ -5,18 +5,17 @@ from litellm import completion
 from enums import Model, Provider
 
 
-def get_llm(model: str) -> callable:
+def get_llm(model: Model) -> callable:
     """
     Returns a function to invoke the LLM based on the selected model.
     Uses LiteLLM's `completion()` method for interaction.
     """
 
     # Find the correct Model Enum
-    model_enum = next((m for m in Model if m.model_name == model), None)
-    if not model_enum:
+    if not model:
         raise ValueError(f"Model {model} is not recognized.")
 
-    provider = model_enum.provider
+    provider = model.provider
 
     # Fetch the correct API key or host URL dynamically
     if provider == Provider.OLLAMA:
@@ -34,7 +33,7 @@ def get_llm(model: str) -> callable:
         """
         try:
             response = completion(
-                model=model,
+                model=model.model_name,
                 messages=messages,
                 api_key=api_key if api_key else None,  # Pass only if defined
                 api_base=api_base if provider == Provider.OLLAMA else None,  # Only for Ollama

@@ -6,29 +6,28 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "ebooklib>=0.18",
-    "faiss-cpu>=1.10.0",
     "neo4j>=5.28.1",
-    "numpy>=2.2.3",
-    "redis>=5.2.1",
-    "ollama>=0.4.7",
-    "argparse>=1.4.0",
     "dotenv>=0.9.9",
-    "sentence-transformers>=3.4.1",
     "streamlit>=1.42.2",
     "litellm>=1.61.20",
     "ruff>=0.9.7",
     "tenacity>=9.0.0",
+    "numpy==1.26.4",
+    "langchain-community>=0.3.18",
+    "chromadb>=0.6.3",
+    "googleapis-common-protos>=1.68.0",
+    "faiss-cpu>=1.10.0",
 ]
 
 [project.packages]
-find = {where = ["src"]}
+find = { where = ["src"] }
 
 [tool.uv.workspace]
 members = ["venv"]
 
 [tool.ruff]
-lint.select = [ "E", "F", "I", "TID251" ]
-lint.ignore = [ "E501" ]
+lint.select = ["E", "F", "I", "TID251"]
+lint.ignore = ["E501"]
 line-length = 88
 indent-width = 4
 extend-include = ["*.ipynb"]

@@ -5,15 +5,13 @@ from chromadb import PersistentClient
 import faiss
 import litellm
 import numpy as np
-from chromadb.config import Settings
+from src.enums.models import Provider, EmbeddingModel
 
 
 class VectorStore:
     def __init__(
         self,
-        embedding_model_name: str,
-        embedding_provider: str,
-        api_base: Optional[str] = None,
+        embedding_model: EmbeddingModel,
         chapter_mode: bool = False,
         persist: bool = True,
         collection_name: str = "vector_store_collection",
@@ -23,15 +21,16 @@ class VectorStore:
 
         Args:
             embedding_model_name: The embedding model name.
-            embedding_provider: Embedding provider ("sentence_transformers", "ollama", "openai", "jinaai", "litellm").
+            embedding_provider: Embedding provider
             api_base: API base URL for providers like Ollama.
             chapter_mode: If True, store chapter information.
             persist: Whether to use persistent ChromaDB storage.
             collection_name: ChromaDB collection name.
         """
-        self.embedding_provider = embedding_provider.lower()
-        self.api_base = api_base
-        self.embedding_model_name = embedding_model_name
+        self.embedding_model = embedding_model
+        self.embedding_provider = embedding_model.provider
+        self.api_base = os.getenv(
+            "OLLAMA_HOST") if self.embedding_model.provider == Provider.OLLAMA else None
         self.chapter_mode = chapter_mode
 
         # Initialize the embedding model
@@ -46,7 +45,7 @@ class VectorStore:
 
     def _initialize_embedding_model(self):
         """Initializes the embedding model based on the selected provider."""
-        if self.embedding_provider in ["ollama", "openai", "jinaai", "litellm"]:
+        if self.embedding_provider.value in Provider.all_providers():
             self.dimension = None  # Determined dynamically when first used
         else:
             raise ValueError(
@@ -56,10 +55,7 @@ class VectorStore:
         """Initializes ChromaDB for persistent storage."""
         persist_dir = os.path.join(".data", "chromadb")
         os.makedirs(persist_dir, exist_ok=True)
-        self.chroma_client = PersistentClient(Settings(
-            chroma_db_impl="duckdb+parquet",
-            persist_directory=persist_dir
-        ))
+        self.chroma_client = PersistentClient(path=persist_dir)
         self.collection = self.chroma_client.get_or_create_collection(
             name=collection_name)
 
@@ -68,8 +64,8 @@ class VectorStore:
         if self.embedding_provider:
             response = litellm.embedding(
                 input=text_chunks,
-                model=self.embedding_model_name,
-                api_base=self.api_base if self.embedding_provider == "ollama" else None
+                model=self.embedding_model.model_name,
+                api_base=self.api_base if self.embedding_provider == Provider.OLLAMA else None
             )
             embeddings = [item["embedding"] for item in response["data"]]
             embeddings_np = np.array(embeddings, dtype=np.float32)

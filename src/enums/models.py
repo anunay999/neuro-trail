@@ -35,6 +35,11 @@ class Provider(Enum):
         """Returns a list of providers that are LLM providers."""
         return [provider for provider in cls if provider.is_llm_provider]
 
+    @classmethod
+    def all_providers(cls):
+        """Returns a list of providers that are LLM providers."""
+        return [provider.value for provider in cls]
+
 
 class Model(Enum):
     """Enum mapping models to providers."""

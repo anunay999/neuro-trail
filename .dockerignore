@@ -54,3 +54,4 @@ build/
 .env
 *.local
 *.dev
+books*

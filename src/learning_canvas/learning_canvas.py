@@ -2,6 +2,7 @@ import os
 
 from dotenv import load_dotenv
 
+from embeddings.ollama_base import OllamaBase as OllamaEmbedding
 from epub_extract import extract_epub
 from knowledge_graph import KnowledgeGraph
 from llm import query_ollama
@@ -19,7 +20,8 @@ class LearningCanvas:
     def __init__(self):
         # Initialize components (adjust connection details as needed)
         self.kg = KnowledgeGraph(NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD)
-        self.vector_store = VectorStore()
+        self.embedding_model = OllamaEmbedding(model_name="bge-m3:latest")
+        self.vector_store = VectorStore(embedding_model=self.embedding_model)
         self.memory = UserMemory()
 
     def add_epub(self, epub_path, user_id="user_123"):

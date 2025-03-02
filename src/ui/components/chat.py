@@ -1,17 +1,15 @@
 import streamlit as st
 
-from llm import get_llm
+from src.learning_canvas import LearningCanvas
 
 
-def chat_ui():
-    st.title("🧠 Neuro Trail - Memory Augmented Learning Assistant")
+def chat_ui(canvas: LearningCanvas):
+    st.title("Neuro Trail 🧠 - Memory Augmented Learning")
 
     # Check if a model is selected
     if "selected_model" not in st.session_state:
         st.warning("⚠️ Please configure the model provider in the sidebar.")
         st.stop()
-
-    model = st.session_state["selected_model"]
 
     # Initialize chat history
     if "chat_history" not in st.session_state:
@@ -21,17 +19,13 @@ def chat_ui():
     user_input = st.chat_input("Ask me anything..")
 
     if user_input:
-        # Get LLM instance
-        llm = get_llm(model=model.model_name)
-
         # Query model
         with st.spinner("Generating response..."):
-            response = llm(
-                messages=[{"role": "user", "content": user_input}], temperature=0.7
-            )
+            response = canvas.answer_query(user_input)
 
         # Update chat history
-        st.session_state["chat_history"].append({"role": "user", "content": user_input})
+        st.session_state["chat_history"].append(
+            {"role": "user", "content": user_input})
         st.session_state["chat_history"].append(
             {"role": "assistant", "content": response}
         )

@@ -1,3 +1,3 @@
-from .models import Model, ModelProvider
+from .models import EmbeddingModel, Model, Provider
 
-__all__ = ["ModelProvider", "Model"]
+__all__ = ["Provider", "Model", "EmbeddingModel"]

@@ -2,7 +2,7 @@ import os
 
 from litellm import completion
 
-from enums import Model, ModelProvider
+from enums import Model, Provider
 
 
 def get_llm(model: str) -> callable:
@@ -19,7 +19,7 @@ def get_llm(model: str) -> callable:
     provider = model_enum.provider
 
     # Fetch the correct API key or host URL dynamically
-    if provider == ModelProvider.OLLAMA:
+    if provider == Provider.OLLAMA:
         # Default to local Ollama server
         api_base = os.getenv("OLLAMA_HOST", "http://localhost:11434")
         api_key = None  # Ollama doesn't use an API key
@@ -37,7 +37,7 @@ def get_llm(model: str) -> callable:
                 model=model,
                 messages=messages,
                 api_key=api_key if api_key else None,  # Pass only if defined
-                api_base=api_base if provider == ModelProvider.OLLAMA else None,  # Only for Ollama
+                api_base=api_base if provider == Provider.OLLAMA else None,  # Only for Ollama
                 temperature=temperature
             )
             return response['choices'][0]['message']['content']

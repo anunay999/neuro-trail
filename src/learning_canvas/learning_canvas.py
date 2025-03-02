@@ -1,12 +1,14 @@
 import os
+import tempfile
 
 from dotenv import load_dotenv
 
+from enums import EmbeddingModel  # Import the updated embedding model enum
 from epub_extract import extract_epub
 from knowledge_graph import KnowledgeGraph
-from llm import query_ollama
+from llm import get_llm
+from rag import VectorStore
 from user_memory import UserMemory
-from vector_store import VectorStore
 
 load_dotenv()
 
@@ -19,70 +21,108 @@ class LearningCanvas:
     def __init__(self):
         # Initialize components (adjust connection details as needed)
         self.kg = KnowledgeGraph(NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD)
-        self.vector_store = VectorStore()
         self.memory = UserMemory()
+        self.model = None
+        self.embedding_model = None
+        self.vector_store = None  # Initialized later after model is set
 
-    def add_epub(self, epub_path, user_id="user_123"):
-        # Process EPUB file
-        metadata, full_text, chapters = extract_epub(epub_path)
-        print(
-            f"Loaded '{metadata['title']}' by {metadata['author']}. Chapters found: {len(chapters)}"
+    def set_model(self, model, embedding_model):
+        """
+        Sets the LLM model and embedding model dynamically.
+        """
+        self.model = model
+        self.embedding_model = embedding_model
+
+        # Initialize the Vector Store with the selected embedding model
+        self.vector_store = VectorStore(
+            embedding_model_name=self.embedding_model.model_name,
+            # Get the provider name as string
+            embedding_provider=self.embedding_model.provider.value,
+            api_base=os.getenv(
+                "OLLAMA_HOST") if self.embedding_model.provider == EmbeddingModel.OLLAMA else None
         )
 
-        # Update Knowledge Graph
-        self.kg.add_book(metadata["title"], metadata["author"])
-        if chapters:
-            self.kg.add_chapters(metadata["title"], chapters)
-        self.kg.add_user_interaction(user_id, metadata["title"])
+    def add_epub(self, epub_file, user_id="user_123"):
+        """
+        Process an uploaded EPUB file (file-like object) and add it to the system.
+        """
+        # Create a temporary file
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".epub") as temp_file:
+            # Write the uploaded file content
+            temp_file.write(epub_file.read())
+            temp_file_path = temp_file.name  # Save path for processing
 
-        # Update Vector Store with text chunks (using paragraph splitting)
-        paragraphs = [p.strip() for p in full_text.split("\n\n") if len(p.strip()) > 50]
-        self.vector_store.add_text_chunks(paragraphs)
+        try:
+            # Process EPUB file using the extracted path
+            metadata, full_text, chapters = extract_epub(temp_file_path)
+            print(
+                f"Loaded '{metadata['title']}' by {metadata['author']}. Chapters found: {len(chapters)}"
+            )
 
-        # Update User Memory with progress
-        self.memory.update_progress(user_id, metadata["title"])
-        print("EPUB processed and added to system.")
+            # Update Knowledge Graph
+            self.kg.add_book(metadata["title"], metadata["author"])
+            if chapters:
+                self.kg.add_chapters(metadata["title"], chapters)
+            self.kg.add_user_interaction(user_id, metadata["title"])
 
-    def search_query(self, query):
-        results = self.vector_store.search(query)
+            # Process text chunks & store in Vector Store
+            paragraphs = [p.strip() for p in full_text.split(
+                "\n\n") if len(p.strip()) > 50]
+            self.vector_store.add_text_chunks(
+                paragraphs, chapter=metadata["title"])
+
+            # Update User Memory with progress
+            self.memory.update_progress(user_id, metadata["title"])
+            print("EPUB processed and added to system.")
+
+        finally:
+            # Cleanup temporary file
+            os.remove(temp_file_path)
+
+    def search_query(self, query, top_k=3):
+        """
+        Searches for relevant text chunks using the vector store.
+        """
+        results = self.vector_store.search(query, top_k=top_k)
         for res in results:
-            chapter_info = f"(Chapter: {res['chapter']})" if res.get("chapter") else ""
+            chapter_info = f"(Chapter: {res['chapter']})" if res.get(
+                "chapter") else ""
             print(f"Result {chapter_info}:\n{res['text'][:200]}...\n")
+        return results
 
     def answer_query(self, query, user_id="user_123"):
         """
         Uses the vector store to fetch context and then sends a prompt (context + query)
-        to the Ollama LLM model. Then, it asks the user if they understood the response and
-        collects a summary to update their learning memory.
+        to the LLM model.
         """
-        # Fetch context chunks
-        context_chunks = self.vector_store.search(query, top_k=5)
-        context_text = "\n".join([chunk["text"] for chunk in context_chunks])
-        prompt = f"Using the following context:\n{context_text}\n\nAnswer the following question:\n{query}"
-        answer = query_ollama(prompt)
-        print("\nAnswer from Ollama LLM:")
-        print(answer)
+        print(f"Searching for relevant context for query: {query}")
+        context_chunks = self.search_query(query, top_k=5)
 
-        # Ask the user to confirm if they understood
-        understood = input("\nDid you understand the answer? (y/n): ").strip().lower()
-        if understood == "y":
-            # TODO: quiz
-            # summary = input("Great! Please provide a brief summary of what you learned: ")
-            self.memory.update_learning_summary(user_id, answer)
-            print("Learning summary updated.")
+        if not context_chunks:
+            print("No relevant context found. Proceeding with default prompt.")
+            prompt = f"Answer the following question:\n{query}"
         else:
-            feedback = input("Can you provide feedback to improve the response: ")
-            user_prompt = f"goal:improve the response based on user feedback\n Current Answer: {answer}\n\nuser feedback on improvement:\n{feedback}\n incorporate the feedback and improve the current response"
-            self.answer_query(user_prompt)
-        return answer
+            context_text = "\n".join([chunk["text"]
+                                     for chunk in context_chunks])
+            prompt = f"Using the following context:\n{context_text}\n\nAnswer the following question:\n{query}"
+
+        llm = get_llm(self.model)
+        response = llm(
+            messages=[{"role": "user", "content": prompt}], temperature=0.7)
+        return response
 
     def get_user_history(self, user_id="user_123"):
+        """
+        Retrieves the user's learning history.
+        """
         progress = self.memory.get_history(user_id)
         learned = self.memory.get_learning_history(user_id)
+
         print("Books read:", progress)
         print("Learning summaries:")
         for idx, summary in enumerate(learned, 1):
             print(f"{idx}. {summary}")
 
     def close(self):
+        """Closes connections to any resources."""
         self.kg.close()

@@ -1,45 +1,70 @@
 import os
+import logging
 
 import streamlit as st
 
-from enums import EmbeddingModel, Model, Provider
-from learning_canvas import LearningCanvas
+from enums import EmbeddingModel, Model, Provider  # Assuming enums.models exists
+from learning_canvas import LearningCanvas  # Assuming learning_canvas exists
+
+# Configure logging
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 
 def process_uploaded_files(canvas: LearningCanvas):
     """Function to process uploaded EPUB, DOCX, and PDF files."""
+    logger.info("Processing uploaded files.")
     if not st.session_state["uploaded_files"]:
+        logger.warning("No files to process.")
         st.toast("No files to process.", icon="⚠️")
         return
 
     # Indicate processing start
     st.session_state["processing_status"] = "Processing files..."
-    st.toast("Processing files... Please wait.", icon="⏳")
-
-    print("Uploaded files: ", st.session_state["uploaded_files"])
+    st.toast("Processing files...", icon="⏳")
+    logger.info(f"Uploaded files: {st.session_state['uploaded_files']}")
 
     for uploaded_file in st.session_state["uploaded_files"]:
         file_extension = uploaded_file.name.split(".")[-1].lower()
+        logger.info(
+            f"Processing file: {uploaded_file.name}, extension: {file_extension}")
 
         if file_extension == "epub":
-            st.info(f"📖 Processing EPUB: {uploaded_file.name}")
-            # Call the add_epub function with file-like object
-            # Pass file object directly
-            canvas.add_epub(uploaded_file, user_id="user_123")
+            st.toast(f"Processing EPUB: {uploaded_file.name}", icon="📖")
+            try:
+                canvas.add_epub(uploaded_file, user_id="user_123")
+                logger.info(
+                    f"Successfully processed EPUB: {uploaded_file.name}")
+
+            except Exception as e:
+                logger.exception(
+                    f"Error processing EPUB {uploaded_file.name}: {e}")
+                st.error(f"Failed to process EPUB {uploaded_file.name}: {e}")
+                st.session_state["processing_status"] = False
 
         elif file_extension in ["docx", "pdf"]:
-            st.info(
-                f"📄 Skipping {uploaded_file.name} (Handler not implemented yet)")
-            # Placeholder for future DOCX/PDF handling
+            logger.info(
+                f"Skipping {uploaded_file.name} (Handler not implemented yet)")
+            st.toast(
+                f"skipping {uploaded_file.name} (Handler not implemented yet)", icon="📄"
+            )            # Placeholder for future DOCX/PDF handling
+            st.session_state["processing_status"] = True
+        else:
+            logger.warning(f"Unsupported file type: {file_extension}")
+            st.warning(f"Unsupported file type: {file_extension}")
+            st.session_state["processing_status"] = False
 
     # Update processing status
-    st.session_state["processing_status"] = "Files processed successfully!"
-    st.toast(st.session_state["processing_status"], icon="✅")
-    st.balloons()
+    if st.session_state["processing_status"]:
+        st.toast(st.session_state["processing_status"], icon="✅")
+        st.balloons()
+        logger.info("File processing complete.")
 
 
 def initialize_session_state():
     """Initialize session state variables if not already set."""
+    logger.info("Initializing session state.")
     session_defaults = {
         "selected_model": None,
         "selected_embedding_model": None,
@@ -49,11 +74,14 @@ def initialize_session_state():
     for key, value in session_defaults.items():
         if key not in st.session_state:
             st.session_state[key] = value
+            logger.debug(
+                f"Initialized session state variable: {key} = {value}")
 
 
 def configure_llm():
     """Handles LLM provider and model selection."""
     st.sidebar.subheader("LLM Configuration")
+    logger.info("Configuring LLM.")
 
     provider_option = st.sidebar.selectbox(
         "Select Provider",
@@ -61,6 +89,7 @@ def configure_llm():
         index=0,
     )
     selected_provider = Provider(provider_option)
+    logger.info(f"Selected LLM provider: {selected_provider}")
 
     api_key = handle_api_key_input(selected_provider)
 
@@ -70,6 +99,7 @@ def configure_llm():
     selected_model = st.sidebar.selectbox(
         "Select LLM Model", options=[model.model_name for model in available_models]
     )
+    logger.info(f"Selected LLM model: {selected_model}")
 
     st.session_state["selected_provider"] = selected_provider
 
@@ -84,9 +114,13 @@ def configure_llm():
 def configure_embedding(same_provider):
     """Handles Embedding provider and model selection."""
     st.sidebar.subheader("Embedding Configuration")
+    logger.info(
+        f"Configuring Embedding.  Same provider as LLM: {same_provider}")
 
     if same_provider:
         selected_embedding_provider = st.session_state["selected_provider"]
+        logger.info(
+            f"Using same provider for embedding: {selected_embedding_provider}")
     else:
         embedding_provider_option = st.sidebar.selectbox(
             "Select Embedding Provider",
@@ -95,6 +129,9 @@ def configure_embedding(same_provider):
             index=0,
         )
         selected_embedding_provider = Provider(embedding_provider_option)
+        logger.info(
+            f"Selected embedding provider: {selected_embedding_provider}")
+        # Ensure API key is handled
         handle_api_key_input(selected_embedding_provider)
 
     # Embedding Model Selection
@@ -103,6 +140,7 @@ def configure_embedding(same_provider):
     selected_embedding_model = st.sidebar.selectbox(
         "Select Embedding Model", options=[model.model_name for model in available_embedding_models]
     )
+    logger.info(f"Selected embedding model: {selected_embedding_model}")
 
     # Store selected embedding model in session state
     st.session_state["selected_embedding_model"] = next(
@@ -112,23 +150,37 @@ def configure_embedding(same_provider):
 
 def handle_api_key_input(provider):
     """Handles API key input for a given provider."""
+    logger.info(f"Handling API key input for provider: {provider}")
     if provider in {Provider.OPENAI, Provider.GOOGLE, Provider.HUGGINGFACE, Provider.MISTRAL}:
         api_key_name = provider.api_key_env_var
         api_key = st.sidebar.text_input(
             f"Enter {api_key_name}", type="password")
         if api_key:
             os.environ[api_key_name] = api_key
+            logger.info(f"Set environment variable: {api_key_name}")
+        else:
+            logger.warning(f"No API Key provided for {provider}")
         return api_key
     elif provider == Provider.OLLAMA:
         ollama_host = st.sidebar.text_input(
             "Enter Ollama Host URL (http://localhost:11434)")
-        os.environ["OLLAMA_HOST"] = ollama_host
+        if ollama_host:
+            os.environ["OLLAMA_HOST"] = ollama_host
+            logger.info(
+                f"Set environment variable: OLLAMA_HOST to {ollama_host}")
+        else:
+            logger.warning("No Ollama host was provided")
         return ollama_host
+    else:
+        logger.warning(
+            f"API key handling not implemented for provider: {provider}")
+        return None
 
 
-@st.dialog(title="Upload Knowledge", width="large")
+@st.dialog(title="Upload Knowledge", width="large")  # Fixed decorator
 def handle_file_upload(canvas: LearningCanvas):
     """Handles file upload functionality."""
+    logger.info("Handling file upload.")
     with st.expander(":file_folder: Upload Documents", expanded=True):
         uploaded_files = st.file_uploader(
             "Upload a document (EPUB, DOCX, PDF)",
@@ -137,33 +189,37 @@ def handle_file_upload(canvas: LearningCanvas):
             help="Supports EPUB, DOCX, and PDF formats",
         )
 
-        for uploaded_file in uploaded_files:
-            if uploaded_file and uploaded_file.name not in [f.name for f in st.session_state["uploaded_files"]]:
-                st.session_state["uploaded_files"].append(uploaded_file)
+        if uploaded_files:  # check if files are uploaded
+            for uploaded_file in uploaded_files:
+                if uploaded_file and uploaded_file.name not in [f.name for f in st.session_state["uploaded_files"]]:
+                    st.session_state["uploaded_files"].append(uploaded_file)
+                    logger.info(
+                        f"Added file to upload queue: {uploaded_file.name}")
 
-        if st.session_state["uploaded_files"]:
-            st.markdown("### Uploaded Files")
-            for file in st.session_state["uploaded_files"]:
-                st.success(f"{file.name}")
-            st.button("Process files",
-                      on_click=process_uploaded_files, args=(canvas, ), use_container_width=True, type="primary")
+            if st.session_state["uploaded_files"]:
+                st.button("Process files",
+                          on_click=process_uploaded_files, args=(canvas, ), use_container_width=True, type="primary")
 
 
 def handle_build_knowledge_button(canvas):
     """Handles the knowledge-building process button."""
+    logger.info("Handling 'Build Knowledge' button.")
     if st.sidebar.button(
         "🚀 Build Knowledge",
-        type="primary",
+        type="primary", use_container_width=True
     ):
         handle_file_upload(canvas)
 
     if st.session_state["processing_status"]:
         st.toast(st.session_state["processing_status"], icon="🚀")
+        logger.info(
+            f"Processing status: {st.session_state['processing_status']}")
 
 
 def sidebar(canvas: "LearningCanvas"):
     """Main sidebar function."""
     st.sidebar.title(":gear: Configuration")
+    logger.info("Rendering sidebar.")
     initialize_session_state()
 
     # Configure LLM and Embedding
@@ -175,8 +231,12 @@ def sidebar(canvas: "LearningCanvas"):
     configure_embedding(same_provider)
 
     # Handle file upload & processing
-    # handle_file_upload()
     handle_build_knowledge_button(canvas)
 
-    canvas.set_model(st.session_state["selected_model"],
-                     st.session_state["selected_embedding_model"])
+    try:
+        canvas.set_model(st.session_state["selected_model"],
+                         st.session_state["selected_embedding_model"])
+    except Exception as e:
+        logger.exception(f"Error setting model: {e}")
+        # Added error message
+        st.error("Error initializing model, check configuration")

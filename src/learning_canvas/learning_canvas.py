@@ -77,7 +77,9 @@ class LearningCanvas:
 
         except Exception as e:
             logger.exception(f"Error processing EPUB file: {e}")
-            st.error(f"An error occurred while processing the EPUB: {e}")
+            st.toast(
+                f"An error occurred while processing the EPUB: {e}", icon="⚠️")
+            raise Exception(f"Error processing EPUB file: {e}")
 
         finally:
             os.remove(temp_file_path)
@@ -99,7 +101,7 @@ class LearningCanvas:
                     f"Result {i+1} {chapter_info}:\n{res['text'][:200]}...\n")
         except Exception as e:
             logger.exception(f"Error during search query: {e}")
-            st.error(f"An error occurred while searching: {e}")
+            st.toast(f"An error occurred while searching: {e}", icon="⚠️")
         return results
 
     def answer_query(self, query, user_id="user_123"):
@@ -114,7 +116,8 @@ class LearningCanvas:
             context_chunks = self.search_query(query, top_k=5)
         except Exception as e:  # Catch potential errors in search_query
             logger.exception(f"Error during search in answer_query: {e}")
-            st.error(f"An error occurred while searching for context: {e}")
+            st.toast(
+                f"An error occurred while searching for context: {e}", icon="⚠️")
             return None  # Or some other appropriate error handling
 
         if not context_chunks:
@@ -135,7 +138,8 @@ class LearningCanvas:
             return response
         except Exception as e:
             logger.exception(f"Error during LLM call: {e}")
-            st.error(f"An error occurred while getting the LLM response: {e}")
+            st.toast(
+                f"An error occurred while getting the LLM response: {e}", icon="⚠️")
             return None
 
     def get_user_history(self, user_id="user_123"):
@@ -155,4 +159,5 @@ class LearningCanvas:
         except Exception as e:
             logger.exception(f"Error closing KnowledgeGraph connection: {e}")
             # added error handling
-            st.error(f"Error closing knowledge graph connection: {e}")
+            st.toast(
+                f"Error closing knowledge graph connection: {e}", icon="⚠️")

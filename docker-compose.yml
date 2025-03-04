@@ -1,64 +1,25 @@
 services:
   neo4j:
-    image: neo4j:latest
-    container_name: neo4j_service
-    networks:
-      - app_network
+    image: neo4j:latest # Or a specific version, e.g., neo4j:4.4
     ports:
-      - "7475:7474" # Host port 7475 for HTTP
-      - "7688:7687" # Host port 7688 for Bolt
+      - "7474:7474" # HTTP
+      - "7687:7687" # Bolt
     environment:
-      - NEO4J_AUTH=neo4j/password
-      - NEO4J_CONF=/conf # Tell Neo4j to load config from /conf
+      NEO4J_AUTH: neo4j/password
     volumes:
-      - neo4j_data:/data
-      - neo4j_logs:/logs
-      - neo4j_import:/var/lib/neo4j/import
-      - neo4j_plugins:/plugins
-      - ./config/neo4j.conf:/conf/neo4j.conf # Mount the local neo4j.conf into /conf (writable)
+      - neo4j_data:/data # Persist Neo4j data
 
-  ollama:
-    image: ollama/ollama:latest
-    container_name: ollama_service
-    networks:
-      - app_network
-    ports:
-      - "11435:11434" # Host port 11435 to avoid conflicts
-    volumes:
-      - ollama_data:/Users/anunay.aatipamula/.ollama
-      - ./scripts/ollama_entrypoint.sh:/usr/local/bin/ollama_entrypoint.sh
-    entrypoint: ["/bin/bash", "/usr/local/bin/ollama_entrypoint.sh"]
-
-  python_app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: neuro-trail
-    networks:
-      - app_network
+  neuro-trail:
+    build: . # Build from the Dockerfile in the current directory
     depends_on:
       - neo4j
-      - ollama
+    ports:
+      - "8503:8503"
+    env_file: .env
     environment:
-      - .env
-    volumes:
-      - .:/app
-    command: ["uv", "run", "streamlit", "run", "app.py"]
-
-networks:
-  app_network:
-    driver: bridge
+      - NEO4J_URI=${NEO4J_URI}
+      - NEO4J_USER=${NEO4J_USER}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
 
 volumes:
-  redis_data:
-  neo4j_data:
-  neo4j_logs:
-  neo4j_import:
-  neo4j_plugins:
-  ollama_data:
-
-configs:
-  redis_config:
-    file: ./config/redis.conf
-  neo4j_config:
-    file: ./config/neo4j.conf
+  neo4j_data: # Named volume for Neo4j data persistence

@@ -1,15 +1,68 @@
+from dotenv import load_dotenv
 from neo4j import GraphDatabase
-
-
+from neo4j.exceptions import ServiceUnavailable, AuthError, ClientError
+import os
+import streamlit as st
 # -------------------------------------------
 # Build Knowledge graph on Neo4j
 # -------------------------------------------
+
+load_dotenv()
+
+NEO4J_URI = os.getenv("NEO4J_URI", "bolt://neo4j:7687")
+NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
+NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "password")
+
+
 class KnowledgeGraph:
-    def __init__(self, uri, user, password):
-        self.driver = GraphDatabase.driver(uri, auth=(user, password))
+    def __init__(self):
+        self.driver = None  # Initialize driver to None
+        self.connect()
+
+    def connect(self):
+        try:
+            self.driver = GraphDatabase.driver(
+                NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
+            with self.driver.session() as session:  # Verify connectivity immediately
+                session.run("RETURN 1")
+            # Show success in Streamlit
+            print("Successfully connected to Neo4j database.")
+        except ServiceUnavailable:
+            st.toast(
+                "Database connection error: Neo4j server is unavailable.  Please ensure the Neo4j server is running and accessible.", icon="⚠️")
+        except AuthError:
+            st.toast(
+                f"Authentication error:  Invalid Neo4j credentials. Please check NEO4J_USER-> {NEO4J_USER} and NEO4J_PASSWORD-> {NEO4J_PASSWORD}.", icon="⚠️")
+        except ClientError as e:
+            # More specific client-side errors
+            st.toast(f"Client error: {e}", icon="⚠️")
+        except Exception as e:
+            st.toast(f"An unexpected error occurred: {e}", icon="⚠️")
 
     def close(self):
-        self.driver.close()
+        if self.driver:
+            try:
+                self.driver.close()
+            except Exception as e:
+                st.error(f"Error closing the database connection: {e}")
+
+    def _run_query(self, query, **params):
+        """Helper function to run queries and handle exceptions."""
+        if not self.driver:
+            st.error("Database connection is not established.")
+            return  # Or raise an exception, depending on desired behavior
+
+        try:
+            with self.driver.session() as session:
+                return session.run(query, params)
+        except ServiceUnavailable:
+            st.error(
+                "Database connection error: Neo4j server became unavailable during the operation.")
+        except ClientError as e:
+            st.error(f"Query error: {e}")  # Show query errors in Streamlit
+        except Exception as e:
+            st.error(
+                f"An unexpected error occurred during query execution: {e}")
 
     def add_book(self, title, author):
         query = """
@@ -18,8 +71,7 @@ class KnowledgeGraph:
         MERGE (a)-[:WROTE]->(b)
         RETURN b
         """
-        with self.driver.session() as session:
-            session.run(query, title=title, author=author)
+        self._run_query(query, title=title, author=author)
 
     def add_chapters(self, book_title, chapters):
         """
@@ -32,20 +84,4 @@ class KnowledgeGraph:
         MERGE (c:Chapter {title: chapter.title, seq: chapter.seq})
         MERGE (b)-[:HAS_CHAPTER]->(c)
         """
-        with self.driver.session() as session:
-            session.run(query, title=book_title, chapters=chapters)
-
-    def add_user_interaction(self, user_id, book_title, interaction_type="READ"):
-        query = """
-        MERGE (u:User {id: $user_id})
-        MERGE (b:Book {title: $book_title})
-        MERGE (u)-[r:INTERACTED {type: $interaction_type}]->(b)
-        RETURN u, b
-        """
-        with self.driver.session() as session:
-            session.run(
-                query,
-                user_id=user_id,
-                book_title=book_title,
-                interaction_type=interaction_type,
-            )
+        self._run_query(query, title=book_title, chapters=chapters)

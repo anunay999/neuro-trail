@@ -9,12 +9,14 @@ from learning_canvas import LearningCanvas
 def process_uploaded_files(canvas: LearningCanvas):
     """Function to process uploaded EPUB, DOCX, and PDF files."""
     if not st.session_state["uploaded_files"]:
-        st.warning("⚠️ No files to process.")
+        st.toast("No files to process.", icon="⚠️")
         return
 
     # Indicate processing start
-    st.session_state["processing_status"] = "Processing files... ⏳"
-    st.info("Processing files... Please wait.")
+    st.session_state["processing_status"] = "Processing files..."
+    st.toast("Processing files... Please wait.", icon="⏳")
+
+    print("Uploaded files: ", st.session_state["uploaded_files"])
 
     for uploaded_file in st.session_state["uploaded_files"]:
         file_extension = uploaded_file.name.split(".")[-1].lower()
@@ -31,8 +33,9 @@ def process_uploaded_files(canvas: LearningCanvas):
             # Placeholder for future DOCX/PDF handling
 
     # Update processing status
-    st.session_state["processing_status"] = "✅ Files processed successfully!"
-    st.success(st.session_state["processing_status"])
+    st.session_state["processing_status"] = "Files processed successfully!"
+    st.toast(st.session_state["processing_status"], icon="✅")
+    st.balloons()
 
 
 def initialize_session_state():
@@ -141,9 +144,9 @@ def handle_file_upload(canvas: LearningCanvas):
         if st.session_state["uploaded_files"]:
             st.markdown("### Uploaded Files")
             for file in st.session_state["uploaded_files"]:
-                st.success(f"✅ {file.name}")
+                st.success(f"{file.name}")
             st.button("Process files",
-                      on_click=process_uploaded_files, args=(canvas, ))
+                      on_click=process_uploaded_files, args=(canvas, ), use_container_width=True, type="primary")
 
 
 def handle_build_knowledge_button(canvas):
@@ -155,7 +158,7 @@ def handle_build_knowledge_button(canvas):
         handle_file_upload(canvas)
 
     if st.session_state["processing_status"]:
-        st.success(st.session_state["processing_status"])
+        st.toast(st.session_state["processing_status"], icon="🚀")
 
 
 def sidebar(canvas: "LearningCanvas"):

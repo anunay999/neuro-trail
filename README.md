@@ -16,6 +16,7 @@ Try demo at [https://neuro-trail.streamlit.app](https://neuro-trail.streamlit.ap
 
 **Note**: The demo is currently under development and may not be fully functional.
 
+
 ## Project Setup
 
 ### Initialize the Project with Docker

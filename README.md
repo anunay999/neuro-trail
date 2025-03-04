@@ -11,6 +11,9 @@ NeuroTrail is an AI-powered learning system designed to enhance personalized lea
 - **Persistent Memory Module**: Tracks learned content and provides recommendations.
 - **Deep Knowledge Graph Integration**: Ensures semantic linking and retrieval.
 
+## Demo
+![Demo](./demo/demo.gif)
+
 ## Project Setup
 
 ### Initialize the Project with Docker

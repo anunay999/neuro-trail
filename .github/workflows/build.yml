@@ -65,7 +65,7 @@ jobs:
 
       - name: Build Docker Compose
         run: |
-          docker compose -f docker-compose.yml --build
+          docker compose -f docker-compose.yml build
 
       - name: Validate Docker Compose
         run: |

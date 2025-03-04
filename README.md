@@ -12,7 +12,10 @@ NeuroTrail is an AI-powered learning system designed to enhance personalized lea
 - **Deep Knowledge Graph Integration**: Ensures semantic linking and retrieval.
 
 ## Demo
-![Demo](https://neuro-trail.streamlit.app)
+Try demo at [https://neuro-trail.streamlit.app](https://neuro-trail.streamlit.app)
+
+**Note**: The demo is currently under development and may not be fully functional.
+
 
 ## Project Setup
 

@@ -43,7 +43,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          uv sync 
+          uv sync
 
       - name: Lint Docs
         run: make lint-docs
@@ -84,13 +84,13 @@ jobs:
         run: |
           docker-compose down
 
-    generate-change-log:
-      runs-on: ubuntu-lates
-      steps:
-        - name: Generate changelog
-          uses: janheinrichmerker/action-github-changelog-generator@v2.4
-          with:
-            token: ${{ secrets.GITHUB_TOKEN }}
-            onlyLastTag: "true"
-            stripHeaders: "true"
-            stripGeneratorNotice: "true"
+  generate-change-log:
+    runs-on: ubuntu-lates
+    steps:
+      - name: Generate changelog
+        uses: janheinrichmerker/action-github-changelog-generator@v2.4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          onlyLastTag: "true"
+          stripHeaders: "true"
+          stripGeneratorNotice: "true"

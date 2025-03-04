@@ -1,28 +1,27 @@
-# Use the official Python image from the Docker Hub
+# Use the official Python image as the base
 FROM python:3.11-slim
 
-# Set the working directory in the container
+# Set the working directory inside the container
 WORKDIR /app
 
-# Update package lists and install curl
-RUN apt-get update && apt-get install -y curl
-
-# Copy the requirements file into the container
-
-# Install tuv package manager
+# Install `uv` package manager
 RUN pip install uv
 
-# Copy the rest of your application code into the container
-COPY pyproject.toml uv.lock .
+# Copy dependency files
+COPY pyproject.toml uv.lock ./
 
-# Install the dependencies
+# Install dependencies using `uv`
 ENV UV_PROJECT_ENVIRONMENT="/usr/local/"
 RUN uv sync --locked
 
+EXPOSE 8503
+
+# Copy the entire application code into the container
 COPY . .
 
-# Set the working directory to the src directory
-WORKDIR /app/src
+# Set working directory to `src`
+WORKDIR /app
 
-# Set the default command for the container
-CMD ["uv", "run", "main.py"]
+# Start both Neo4j and the Python application
+CMD ["/bin/bash", "-c", "\
+    uv run streamlit run src/app.py --server.port=8503"]

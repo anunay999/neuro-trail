@@ -11,47 +11,32 @@ NeuroTrail is an AI-powered learning system designed to enhance personalized lea
 - **Persistent Memory Module**: Tracks learned content and provides recommendations.
 - **Deep Knowledge Graph Integration**: Ensures semantic linking and retrieval.
 
-## Project Setup
+## Demo
+![Demo](./demo/demo.gif)
 
-### Prerequisites
-- **Ensure the required EPUB files are placed in the books folder before building the Docker image.** 
-- default Ollama model is deepseek-r1:1.5b. To use a different model, update the environment variables in the docker-compose.yml file accordingly.
+## Project Setup
 
 ### Initialize the Project with Docker
 
 Run the following command to build and start the project:
 
 ```sh
-docker-compose up --build
-```
-### Interact with the Application
-Currently, the app runs in the terminal (UI integration is in progress). Once the Docker setup is complete, access the application by running:
-
-```sh
-docker-compose run python_app bash
+docker compose up --build
 ```
 
-Once inside the container, start the app with:
-
-```sh 
-uv run main.py
-```
+It should start a streamlit app on port `8503`.
 
 ## Future Enhancements
-- Open UI integration
+- User memory persistence for personalized learning paths
 - Agent Ecosystem for personalized experience
 - Quiz Generation
 - Multi-modal EPUB analysis (text, tables, images)
-- Historical and epistemic retrieval
 - Expanded document support (PDFs, DOCX)
 - AI-driven feedback refinement
 
-## Alternate settings
-### Existing ollama local setup
-update the ollama volume section in docker-compose with the following line
-```
-- /Users/nitin.surya/.ollama/:/root/.ollama
-```
+## Advanced settings
+- Modify the environment variables in the docker-compose.yml file to customize neo4j project settings.
+- To run Ollama, ensure it is installed and accessible from the Docker container. Update the environment variables in the docker-compose.yml file accordingly.
 
 ## Resources
 - [Intro Blog](https://medium.com/@anunayaatipamula/building-a-memory-augmented-learning-companion-from-idea-to-implementation-49970ac6da16)

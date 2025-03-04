@@ -1,3 +1,5 @@
-from .llm import query_ollama
+from .llm import get_llm
 
-__all__ = ["query_ollama"]
+__all__ = [
+    "get_llm",
+]

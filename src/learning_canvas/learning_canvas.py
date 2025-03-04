@@ -1,88 +1,175 @@
 import os
-
-from dotenv import load_dotenv
-
+import tempfile
+import logging
+import io
+from enums import EmbeddingModel, Model
 from epub_extract import extract_epub
 from knowledge_graph import KnowledgeGraph
-from llm import query_ollama
-from user_memory import UserMemory
-from vector_store import VectorStore
+from llm import get_llm
+from rag import VectorStore
+import streamlit as st
 
-load_dotenv()
-
-NEO4J_URI = os.getenv("NEO4J_URI")
-NEO4J_USER = os.getenv("NEO4J_USER")
-NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD")
+# Configure logging
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 
 class LearningCanvas:
     def __init__(self):
-        # Initialize components (adjust connection details as needed)
-        self.kg = KnowledgeGraph(NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD)
-        self.vector_store = VectorStore()
-        self.memory = UserMemory()
+        """
+        Initializes the LearningCanvas components.
+        """
+        logger.info("Initializing LearningCanvas")
+        self.kg = KnowledgeGraph()
+        self.model = None
+        self.embedding_model = None
+        self.vector_store = None  # Initialized later after model is set
 
-    def add_epub(self, epub_path, user_id="user_123"):
-        # Process EPUB file
-        metadata, full_text, chapters = extract_epub(epub_path)
-        print(
-            f"Loaded '{metadata['title']}' by {metadata['author']}. Chapters found: {len(chapters)}"
+    def set_model(self, model: Model, embedding_model: EmbeddingModel):
+        """
+        Sets the LLM model and embedding model dynamically, and initializes the VectorStore.
+        """
+        logger.info(
+            f"Setting LLM model: {model}, Embedding model: {embedding_model}")
+        self.model = model
+        self.embedding_model = embedding_model
+
+        # Initialize the Vector Store with the selected embedding model
+        self.vector_store = VectorStore(
+            embedding_model=self.embedding_model,
+            chapter_mode=True
         )
+        logger.info("VectorStore initialized.")
 
-        # Update Knowledge Graph
-        self.kg.add_book(metadata["title"], metadata["author"])
-        if chapters:
-            self.kg.add_chapters(metadata["title"], chapters)
-        self.kg.add_user_interaction(user_id, metadata["title"])
+    def add_epub(self, epub_file, user_id="user_123") -> bool:
+        """
+        Processes an uploaded EPUB file and adds it to the system.
 
-        # Update Vector Store with text chunks (using paragraph splitting)
-        paragraphs = [p.strip() for p in full_text.split("\n\n") if len(p.strip()) > 50]
-        self.vector_store.add_text_chunks(paragraphs)
+        Accepts either:
+          - a file-like object with a .read() method (from st.file_uploader), or
+          - a dict with keys "name" and "data" (serialized from session state).
+        """
+        logger.info(f"Adding EPUB file for user: {user_id}")
 
-        # Update User Memory with progress
-        self.memory.update_progress(user_id, metadata["title"])
-        print("EPUB processed and added to system.")
+        # If epub_file is a dict from session state, wrap its data in a BytesIO stream.
+        if isinstance(epub_file, dict) and "data" in epub_file:
+            file_stream = io.BytesIO(epub_file["data"])
+        else:
+            file_stream = epub_file
 
-    def search_query(self, query):
-        results = self.vector_store.search(query)
-        for res in results:
-            chapter_info = f"(Chapter: {res['chapter']})" if res.get("chapter") else ""
-            print(f"Result {chapter_info}:\n{res['text'][:200]}...\n")
+        # Write the file's content to a temporary file for processing.
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".epub") as temp_file:
+            temp_file.write(file_stream.read())
+            temp_file_path = temp_file.name
+            logger.debug(f"Created temporary file: {temp_file_path}")
+
+        try:
+            metadata, full_text, chapters = extract_epub(temp_file_path)
+            logger.info(
+                f"Loaded '{metadata['title']}' by {metadata['author']}. Chapters found: {len(chapters)}"
+            )
+
+            self.kg.add_book(metadata["title"], metadata["author"])
+            if chapters:
+                self.kg.add_chapters(metadata["title"], chapters)
+                logger.info(
+                    f"Added {len(chapters)} chapters to knowledge graph.")
+            else:
+                logger.warning("No chapters found in EPUB.")
+
+            paragraphs = [p.strip() for p in full_text.split(
+                "\n\n") if len(p.strip()) > 50]
+            self.vector_store.add_text_chunks(
+                paragraphs, chapter=metadata["title"])
+            logger.info("EPUB processed and added to vector store.")
+            return True
+
+        except Exception as e:
+            logger.exception(f"Error processing EPUB file: {e}")
+            st.toast(
+                f"An error occurred while processing the EPUB: {e}", icon="⚠️")
+            raise Exception(f"Error processing EPUB file: {e}")
+
+        finally:
+            os.remove(temp_file_path)
+            logger.debug(f"Removed temporary file: {temp_file_path}")
+
+        return False
+
+    def search_query(self, query, top_k=3):
+        """
+        Searches for relevant text chunks using the vector store.
+        """
+        logger.info(
+            f"Searching for relevant context for query: '{query}', top_k: {top_k}")
+        results = []
+        try:
+            results = self.vector_store.search(query, top_k=top_k)
+            for i, res in enumerate(results):
+                chapter_info = f"(Chapter: {res['chapter']})" if res.get(
+                    "chapter") else ""
+                logger.info(
+                    f"Result {i+1} {chapter_info}:\n{res['text'][:200]}...\n")
+        except Exception as e:
+            logger.exception(f"Error during search query: {e}")
+            st.toast(f"An error occurred while searching: {e}", icon="⚠️")
+        return results
 
     def answer_query(self, query, user_id="user_123"):
         """
-        Uses the vector store to fetch context and then sends a prompt (context + query)
-        to the Ollama LLM model. Then, it asks the user if they understood the response and
-        collects a summary to update their learning memory.
+        Uses the vector store to fetch context and then sends a prompt
+        (context + query) to the LLM.
         """
-        # Fetch context chunks
-        context_chunks = self.vector_store.search(query, top_k=5)
-        context_text = "\n".join([chunk["text"] for chunk in context_chunks])
-        prompt = f"Using the following context:\n{context_text}\n\nAnswer the following question:\n{query}"
-        answer = query_ollama(prompt)
-        print("\nAnswer from Ollama LLM:")
-        print(answer)
+        logger.info(f"Answering query for user {user_id}: {query}")
 
-        # Ask the user to confirm if they understood
-        understood = input("\nDid you understand the answer? (y/n): ").strip().lower()
-        if understood == "y":
-            # TODO: quiz
-            # summary = input("Great! Please provide a brief summary of what you learned: ")
-            self.memory.update_learning_summary(user_id, answer)
-            print("Learning summary updated.")
+        context_chunks = []
+        try:
+            context_chunks = self.search_query(query, top_k=5)
+        except Exception as e:  # Catch potential errors in search_query
+            logger.exception(f"Error during search in answer_query: {e}")
+            st.toast(
+                f"An error occurred while searching for context: {e}", icon="⚠️")
+            return None  # Or some other appropriate error handling
+
+        if not context_chunks:
+            logger.info("No relevant context found.  Using default prompt.")
+            prompt = f"Answer the following question:\n{query}"
         else:
-            feedback = input("Can you provide feedback to improve the response: ")
-            user_prompt = f"goal:improve the response based on user feedback\n Current Answer: {answer}\n\nuser feedback on improvement:\n{feedback}\n incorporate the feedback and improve the current response"
-            self.answer_query(user_prompt)
-        return answer
+            context_text = "\n".join([chunk["text"]
+                                     for chunk in context_chunks])
+            logger.info(f"Context found.  Length: {len(context_text)}")
+            prompt = f"Using the following context:\n{context_text}\n\nAnswer the following question:\n{query}"
+
+        try:
+            llm = get_llm(self.model)
+            response = llm(
+                messages=[{"role": "user", "content": prompt}], temperature=0.7
+            )
+            logger.info("Received response from LLM.")
+            return response
+        except Exception as e:
+            logger.exception(f"Error during LLM call: {e}")
+            st.toast(
+                f"An error occurred while getting the LLM response: {e}", icon="⚠️")
+            return None
 
     def get_user_history(self, user_id="user_123"):
-        progress = self.memory.get_history(user_id)
-        learned = self.memory.get_learning_history(user_id)
-        print("Books read:", progress)
-        print("Learning summaries:")
-        for idx, summary in enumerate(learned, 1):
-            print(f"{idx}. {summary}")
+        """
+        Retrieves the user's learning history.
+        """
+        logger.info(f"Retrieving user history for user: {user_id}")
+        # TODO : Add knowledge graph for user memory
+        pass
 
     def close(self):
-        self.kg.close()
+        """Closes connections to any resources."""
+        logger.info("Closing LearningCanvas resources.")
+        try:
+            self.kg.close()
+            logger.info("Knowledge graph connection closed.")
+        except Exception as e:
+            logger.exception(f"Error closing KnowledgeGraph connection: {e}")
+            # added error handling
+            st.toast(
+                f"Error closing knowledge graph connection: {e}", icon="⚠️")

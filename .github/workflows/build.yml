@@ -65,15 +65,15 @@ jobs:
 
       - name: Build Docker Compose
         run: |
-          docker-compose -f docker-compose.yml build
+          docker compose -f docker-compose.yml --build
 
       - name: Validate Docker Compose
         run: |
-          docker-compose -f docker-compose.yml config --quiet
+          docker compose -f docker-compose.yml config --quiet
 
       - name: Run Docker Compose Services
         run: |
-          docker-compose up -d
+          docker compose up -d
 
       - name: Wait for services to be healthy
         run: |
@@ -82,7 +82,7 @@ jobs:
 
       - name: Stop and clean up
         run: |
-          docker-compose down
+          docker compose down
 
   generate-change-log:
     runs-on: ubuntu-lates

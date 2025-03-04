@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 def process_uploaded_files(canvas: LearningCanvas):
     """Function to process uploaded EPUB, DOCX, and PDF files."""
     logger.info("Processing uploaded files.")
+
     if not st.session_state["uploaded_files"]:
         logger.warning("No files to process.")
         st.toast("No files to process.", icon="⚠️")
@@ -25,30 +26,29 @@ def process_uploaded_files(canvas: LearningCanvas):
     st.toast("Processing files...", icon="⏳")
     logger.info(f"Uploaded files: {st.session_state['uploaded_files']}")
 
-    for uploaded_file in st.session_state["uploaded_files"]:
-        file_extension = uploaded_file.name.split(".")[-1].lower()
+    for file_info in st.session_state["uploaded_files"]:
+        file_name = file_info["name"]
+        file_extension = file_name.split(".")[-1].lower()
+
         logger.info(
-            f"Processing file: {uploaded_file.name}, extension: {file_extension}")
+            f"Processing file: {file_name}, extension: {file_extension}")
 
         if file_extension == "epub":
-            st.toast(f"Processing EPUB: {uploaded_file.name}", icon="📖")
+            st.toast(f"Processing EPUB: {file_name}", icon="📖")
             try:
-                canvas.add_epub(uploaded_file, user_id="user_123")
-                logger.info(
-                    f"Successfully processed EPUB: {uploaded_file.name}")
+                # Pass file name & bytes to your canvas method
+                canvas.add_epub(file_info, user_id="user_123")
+                logger.info(f"Successfully processed EPUB: {file_name}")
 
             except Exception as e:
-                logger.exception(
-                    f"Error processing EPUB {uploaded_file.name}: {e}")
-                st.error(f"Failed to process EPUB {uploaded_file.name}: {e}")
+                logger.exception(f"Error processing EPUB {file_name}: {e}")
+                st.error(f"Failed to process EPUB {file_name}: {e}")
                 st.session_state["processing_status"] = False
 
         elif file_extension in ["docx", "pdf"]:
-            logger.info(
-                f"Skipping {uploaded_file.name} (Handler not implemented yet)")
+            logger.info(f"Skipping {file_name} (Handler not implemented yet)")
             st.toast(
-                f"skipping {uploaded_file.name} (Handler not implemented yet)", icon="📄"
-            )            # Placeholder for future DOCX/PDF handling
+                f"Skipping {file_name} (Handler not implemented yet)", icon="📄")
             st.session_state["processing_status"] = True
         else:
             logger.warning(f"Unsupported file type: {file_extension}")
@@ -57,7 +57,7 @@ def process_uploaded_files(canvas: LearningCanvas):
 
     # Update processing status
     if st.session_state["processing_status"]:
-        st.toast(st.session_state["processing_status"], icon="✅")
+        st.toast("Processing complete", icon="✅")
         st.balloons()
         logger.info("File processing complete.")
 
@@ -177,10 +177,11 @@ def handle_api_key_input(provider):
         return None
 
 
-@st.dialog(title="Upload Knowledge", width="large")  # Fixed decorator
+@st.dialog(title="Upload Knowledge", width="large")
 def handle_file_upload(canvas: LearningCanvas):
     """Handles file upload functionality."""
     logger.info("Handling file upload.")
+
     with st.expander(":file_folder: Upload Documents", expanded=True):
         uploaded_files = st.file_uploader(
             "Upload a document (EPUB, DOCX, PDF)",
@@ -189,16 +190,30 @@ def handle_file_upload(canvas: LearningCanvas):
             help="Supports EPUB, DOCX, and PDF formats",
         )
 
-        if uploaded_files:  # check if files are uploaded
-            for uploaded_file in uploaded_files:
-                if uploaded_file and uploaded_file.name not in [f.name for f in st.session_state["uploaded_files"]]:
-                    st.session_state["uploaded_files"].append(uploaded_file)
-                    logger.info(
-                        f"Added file to upload queue: {uploaded_file.name}")
+        # If user has uploaded one or more files
+        if uploaded_files:
+            for uf in uploaded_files:
+                # Read the file bytes immediately
+                file_data = uf.read()
+                # Check if we already have a file with the same name
+                existing_names = [f["name"]
+                                  for f in st.session_state["uploaded_files"]]
+                if uf.name not in existing_names:
+                    # Store only serializable data: name + bytes
+                    st.session_state["uploaded_files"].append({
+                        "name": uf.name,
+                        "data": file_data
+                    })
+                    logger.info(f"Added file to upload queue: {uf.name}")
 
             if st.session_state["uploaded_files"]:
-                st.button("Process files",
-                          on_click=process_uploaded_files, args=(canvas, ), use_container_width=True, type="primary")
+                st.button(
+                    "Process files",
+                    on_click=process_uploaded_files,
+                    args=(canvas,),
+                    use_container_width=True,
+                    type="primary"
+                )
 
 
 def handle_build_knowledge_button(canvas):

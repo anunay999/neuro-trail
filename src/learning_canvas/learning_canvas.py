@@ -1,7 +1,7 @@
 import os
 import tempfile
 import logging
-
+import io
 from enums import EmbeddingModel, Model
 from epub_extract import extract_epub
 from knowledge_graph import KnowledgeGraph
@@ -45,12 +45,22 @@ class LearningCanvas:
     def add_epub(self, epub_file, user_id="user_123"):
         """
         Processes an uploaded EPUB file and adds it to the system.
+
+        Accepts either:
+          - a file-like object with a .read() method (from st.file_uploader), or
+          - a dict with keys "name" and "data" (serialized from session state).
         """
         logger.info(f"Adding EPUB file for user: {user_id}")
 
-        # Use a 'with' statement for automatic cleanup of the temp file
+        # If epub_file is a dict from session state, wrap its data in a BytesIO stream.
+        if isinstance(epub_file, dict) and "data" in epub_file:
+            file_stream = io.BytesIO(epub_file["data"])
+        else:
+            file_stream = epub_file
+
+        # Write the file's content to a temporary file for processing.
         with tempfile.NamedTemporaryFile(delete=False, suffix=".epub") as temp_file:
-            temp_file.write(epub_file.read())
+            temp_file.write(file_stream.read())
             temp_file_path = temp_file.name
             logger.debug(f"Created temporary file: {temp_file_path}")
 

@@ -23,8 +23,7 @@ def process_uploaded_files(canvas: LearningCanvas):
 
     # Indicate processing start
     st.session_state["processing_status"] = "Processing files..."
-    st.toast("Processing files...", icon="⏳")
-    logger.info(f"Uploaded files: {st.session_state['uploaded_files']}")
+    st.info("Processing files...", icon="⏳")
 
     for file_info in st.session_state["uploaded_files"]:
         file_name = file_info["name"]
@@ -34,11 +33,11 @@ def process_uploaded_files(canvas: LearningCanvas):
             f"Processing file: {file_name}, extension: {file_extension}")
 
         if file_extension == "epub":
-            st.toast(f"Processing EPUB: {file_name}", icon="📖")
+            st.info(f"Processing EPUB: {file_name}", icon="📖")
             try:
                 # Pass file name & bytes to your canvas method
-                canvas.add_epub(file_info, user_id="user_123")
-                logger.info(f"Successfully processed EPUB: {file_name}")
+                if canvas.add_epub(file_info, user_id="user_123"):
+                    logger.info(f"Successfully processed EPUB: {file_name}")
 
             except Exception as e:
                 logger.exception(f"Error processing EPUB {file_name}: {e}")
@@ -47,7 +46,7 @@ def process_uploaded_files(canvas: LearningCanvas):
 
         elif file_extension in ["docx", "pdf"]:
             logger.info(f"Skipping {file_name} (Handler not implemented yet)")
-            st.toast(
+            st.info(
                 f"Skipping {file_name} (Handler not implemented yet)", icon="📄")
             st.session_state["processing_status"] = True
         else:
@@ -57,7 +56,7 @@ def process_uploaded_files(canvas: LearningCanvas):
 
     # Update processing status
     if st.session_state["processing_status"]:
-        st.toast("Processing complete", icon="✅")
+        st.info(f"Processing complete for {file_name}", icon="✅")
         st.balloons()
         logger.info("File processing complete.")
 
@@ -224,11 +223,6 @@ def handle_build_knowledge_button(canvas):
         type="primary", use_container_width=True
     ):
         handle_file_upload(canvas)
-
-    if st.session_state["processing_status"]:
-        st.toast(st.session_state["processing_status"], icon="🚀")
-        logger.info(
-            f"Processing status: {st.session_state['processing_status']}")
 
 
 def sidebar(canvas: "LearningCanvas"):

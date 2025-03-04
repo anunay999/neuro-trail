@@ -42,7 +42,7 @@ class LearningCanvas:
         )
         logger.info("VectorStore initialized.")
 
-    def add_epub(self, epub_file, user_id="user_123"):
+    def add_epub(self, epub_file, user_id="user_123") -> bool:
         """
         Processes an uploaded EPUB file and adds it to the system.
 
@@ -80,10 +80,10 @@ class LearningCanvas:
 
             paragraphs = [p.strip() for p in full_text.split(
                 "\n\n") if len(p.strip()) > 50]
-            logger.info(f"Extracted {len(paragraphs)} paragraphs from EPUB.")
             self.vector_store.add_text_chunks(
                 paragraphs, chapter=metadata["title"])
             logger.info("EPUB processed and added to vector store.")
+            return True
 
         except Exception as e:
             logger.exception(f"Error processing EPUB file: {e}")
@@ -94,6 +94,8 @@ class LearningCanvas:
         finally:
             os.remove(temp_file_path)
             logger.debug(f"Removed temporary file: {temp_file_path}")
+
+        return False
 
     def search_query(self, query, top_k=3):
         """

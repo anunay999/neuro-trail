@@ -37,10 +37,12 @@ def get_llm(model: Model) -> callable:
                 messages=messages,
                 api_key=api_key if api_key else None,  # Pass only if defined
                 api_base=api_base if provider == Provider.OLLAMA else None,  # Only for Ollama
-                temperature=temperature
+                temperature=temperature,
+                stream=True
             )
-            return response['choices'][0]['message']['content']
+            for part in response:
+                yield part.choices[0].delta.content or ""
         except Exception as e:
-            return f"Error: {str(e)}"
+            yield f"Error: {str(e)}"
 
     return query_llm

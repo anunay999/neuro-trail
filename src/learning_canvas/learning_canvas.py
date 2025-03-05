@@ -143,16 +143,14 @@ class LearningCanvas:
 
         try:
             llm = get_llm(self.model)
-            response = llm(
-                messages=[{"role": "user", "content": prompt}], temperature=0.7
-            )
+            for token in llm(messages=[{"role": "user", "content": prompt}], temperature=0.7):
+                yield token
             logger.info("Received response from LLM.")
-            return response
         except Exception as e:
             logger.exception(f"Error during LLM call: {e}")
             st.toast(
                 f"An error occurred while getting the LLM response: {e}", icon="⚠️")
-            return None
+            yield "Error: LLM call failed."
 
     def get_user_history(self, user_id="user_123"):
         """

@@ -2,6 +2,7 @@ import os
 
 from litellm import completion
 
+from core.settings import settings
 from enums import Model, Provider
 
 
@@ -20,7 +21,7 @@ def get_llm(model: Model) -> callable:
     # Fetch the correct API key or host URL dynamically
     if provider == Provider.OLLAMA:
         # Default to local Ollama server
-        api_base = os.getenv("OLLAMA_HOST", "http://localhost:11434")
+        api_base = settings.ollama_host
         api_key = None  # Ollama doesn't use an API key
     else:
         api_key = os.getenv(provider.api_key_env_var, "")

@@ -1,18 +1,12 @@
-from dotenv import load_dotenv
-from neo4j import GraphDatabase
-from neo4j.exceptions import ServiceUnavailable, AuthError, ClientError
-import os
 import streamlit as st
+from neo4j import GraphDatabase
+from neo4j.exceptions import AuthError, ClientError, ServiceUnavailable
+
+from core.settings import settings
+
 # -------------------------------------------
 # Build Knowledge graph on Neo4j
 # -------------------------------------------
-
-load_dotenv()
-
-NEO4J_URI = os.getenv("NEO4J_URI", "bolt://neo4j:7687")
-NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
-NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "password")
-
 
 class KnowledgeGraph:
     def __init__(self):
@@ -22,7 +16,7 @@ class KnowledgeGraph:
     def connect(self):
         try:
             self.driver = GraphDatabase.driver(
-                NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
+                settings.neo4j_uri, auth=(settings.neo4j_user, settings.neo4j_password))
             with self.driver.session() as session:  # Verify connectivity immediately
                 session.run("RETURN 1")
             # Show success in Streamlit
@@ -32,7 +26,7 @@ class KnowledgeGraph:
                 "Database connection error: Neo4j server is unavailable.  Please ensure the Neo4j server is running and accessible.", icon="⚠️")
         except AuthError:
             st.toast(
-                f"Authentication error:  Invalid Neo4j credentials. Please check NEO4J_USER-> {NEO4J_USER} and NEO4J_PASSWORD-> {NEO4J_PASSWORD}.", icon="⚠️")
+                f"Authentication error:  Invalid Neo4j credentials. Please check NEO4J_USER-> {settings.neo4j_user} and NEO4J_PASSWORD-> {settings.neo4j_password}.", icon="⚠️")
         except ClientError as e:
             # More specific client-side errors
             st.toast(f"Client error: {e}", icon="⚠️")

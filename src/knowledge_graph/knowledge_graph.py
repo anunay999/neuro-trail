@@ -2,7 +2,7 @@ import streamlit as st
 from neo4j import GraphDatabase
 from neo4j.exceptions import AuthError, ClientError, ServiceUnavailable
 
-from core.settings import settings
+from core import settings
 
 # -------------------------------------------
 # Build Knowledge graph on Neo4j

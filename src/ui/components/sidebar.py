@@ -1,10 +1,11 @@
-import os
 import logging
+import os
 
 import streamlit as st
 
 from enums import EmbeddingModel, Model, Provider  # Assuming enums.models exists
 from learning_canvas import LearningCanvas  # Assuming learning_canvas exists
+from core.settings import settings
 
 # Configure logging
 logging.basicConfig(level=logging.INFO,
@@ -162,11 +163,11 @@ def handle_api_key_input(provider):
         return api_key
     elif provider == Provider.OLLAMA:
         ollama_host = st.sidebar.text_input(
-            "Enter Ollama Host URL (http://localhost:11434)")
+            f"Enter Ollama Host URL ({settings.ollama_host})")
         if ollama_host:
-            os.environ["OLLAMA_HOST"] = ollama_host
+            settings.ollama_host = ollama_host
             logger.info(
-                f"Set environment variable: OLLAMA_HOST to {ollama_host}")
+                f"Set OLLAMA_HOST to {ollama_host}")
         else:
             logger.warning("No Ollama host was provided")
         return ollama_host

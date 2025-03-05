@@ -40,6 +40,7 @@ It should start a streamlit app on port `8503`.
 ## Advanced settings
 - Modify the environment variables in the docker-compose.yml file to customize neo4j project settings.
 - To run Ollama, ensure it is installed and accessible from the Docker container. Update the environment variables in the docker-compose.yml file accordingly.
+- On MacOS Docker Desktop, goto Settings > Resources > Network and "Enable Host Networking".
 
 ## Resources
 - [Intro Blog](https://medium.com/@anunayaatipamula/building-a-memory-augmented-learning-companion-from-idea-to-implementation-49970ac6da16)

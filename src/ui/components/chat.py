@@ -14,8 +14,8 @@ logger = logging.getLogger(__name__)
 
 def initialize_chat_state():
     """Initialize chat-related session state variables if not already set."""
-    if "chat_history" not in st.session_state:
-        st.session_state["chat_history"] = []
+    if "messages" not in st.session_state:
+        st.session_state["messages"] = []
     
     if "user_id" not in st.session_state:
         st.session_state["user_id"] = str("user1234")
@@ -27,11 +27,6 @@ def initialize_chat_state():
     # Error state
     if "chat_error" not in st.session_state:
         st.session_state["chat_error"] = None
-
-
-def add_message(role, content):
-    """Add a message to the chat history."""
-    st.session_state["chat_history"].append({"role": role, "content": content})
 
 
 def format_prompt_with_personalization(prompt, context=""):
@@ -66,45 +61,37 @@ def chat_ui(canvas: LearningCanvas):
         return
     
     # Add welcome message if this is the first chat interaction
-    if not st.session_state["chat_history"]:
+    if not st.session_state["messages"]:
         welcome_message = {
             "role": "assistant", 
             "content": "👋 Welcome to Neuro Trail! I'm your learning assistant. You can ask me questions about the documents you've uploaded, and I'll use my memory-augmented capabilities to provide helpful responses."
         }
-        add_message("assistant", welcome_message["content"])
-    # 1) Display all messages in chat history
-    else:
-        for message in st.session_state["chat_history"]:
-            with st.chat_message(message["role"]):
-                st.markdown(message["content"])
+        st.chat_message("assistant").markdown(welcome_message["content"])
+        # Add user message to chat history
+        st.session_state.messages.append({"role": "user", "content": welcome_message["content"]})
+
 
     # 2) This input is automatically pinned to the bottom of the page
-    user_input = st.chat_input("Ask me anything...")
-    if user_input:
-        # Immediately show user’s message
-        add_message("user", user_input)
-        with st.chat_message("user"):
-            st.markdown(user_input)
+    if user_input:=st.chat_input("Ask me anything..."):
 
-        # 3) Stream the assistant’s response
-        assistant_message = st.chat_message("assistant")
-        assistant_placeholder = assistant_message.empty()
+        st.chat_message("user").markdown(user_input)
+        # Add user message to chat history
+        st.session_state.messages.append({"role": "user", "content": user_input})
 
         personalized_prompt = format_prompt_with_personalization(user_input)
 
         full_response = ""
         for token in canvas.answer_query(personalized_prompt):
             full_response += token
-            assistant_placeholder.markdown(full_response)
+            with st.chat_message("assistant"):
+                st.markdown(full_response)
+        
+        st.session_state.messages.append({"role": "assistant", "content": full_response})
 
-        # 4) Add assistant’s final response to chat history
-        st.session_state["chat_history"].append(
-            {"role": "assistant", "content": full_response}
-        )
 
     
     with st.sidebar:
         if st.button("Clear Chat", use_container_width=True):
-            st.session_state["chat_history"] = []
+            st.session_state["messages"] = []
             st.session_state["chat_error"] = None
             st.rerun()

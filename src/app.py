@@ -11,32 +11,6 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# # Simple CSS for consistent styling
-# st.markdown("""
-# <style>
-#     /* Make buttons use container width */
-#     button[kind="primary"] {
-#         width: 100%;
-#     }
-    
-#     /* Simple container styling */
-#     .chat-container {
-#         margin-bottom: 20px;
-#     }
-    
-#     /* Hide the default streamlit footer */
-#     footer {
-#         visibility: hidden;
-#     }
-    
-#     /* Typing indicator style */
-#     .typing-indicator {
-#         color: #666;
-#         font-style: italic;
-#         padding: 5px 0;
-#     }
-# </style>
-# """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     # Initialize learning canvas

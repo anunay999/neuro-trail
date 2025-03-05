@@ -122,7 +122,6 @@ def render_advanced_configuration(config_manager: ConfigManager):
                 
                 help="Maximum length of generated responses"
             )
-        save_configuration(config_manager=config_manager)
 
 
     # 2. Embeddings Configuration
@@ -162,7 +161,6 @@ def render_advanced_configuration(config_manager: ConfigManager):
                     value=st.session_state.vector_store_embedding_provider_api_key,
                     help="API key for accessing the embedding service"
                 )
-        save_configuration(config_manager=config_manager)
 
 
 
@@ -194,7 +192,6 @@ def render_advanced_configuration(config_manager: ConfigManager):
                 value=int(st.session_state.vector_store_port),
                 help="Port number for the vector store"
                 )
-        save_configuration(config_manager=config_manager)
 
 
     
@@ -223,7 +220,6 @@ def render_advanced_configuration(config_manager: ConfigManager):
                 value=st.session_state.neo4j_password,
                 help="Password for Neo4j authentication"
             )
-        save_configuration(config_manager=config_manager)
 
     # 5. Knowledge Base
     with config_tabs[4]:
@@ -264,15 +260,12 @@ def render_advanced_configuration(config_manager: ConfigManager):
                 # Process button
                 if st.button(
                     "Process Files",
-                    type="primary",
+                    type="secondary",
                     use_container_width=True
                 ):
                     process_uploaded_files(
                         st.session_state.get("_learning_canvas"))
-
     
-
-def save_configuration(config_manager):
     # Save all configuration changes
     if st.button("Save Configuration", type="primary", use_container_width=True):
         if config_manager.save_configuration():
@@ -283,6 +276,7 @@ def save_configuration(config_manager):
         else:
             st.error("❌ Failed to save configuration. Please check the logs.")
 
+    
 
 
 def configuration_ui(canvas: LearningCanvas):

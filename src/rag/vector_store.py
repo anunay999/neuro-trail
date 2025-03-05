@@ -1,14 +1,15 @@
-import os
-from typing import Dict, List, Optional
 import logging
+import os
+from typing import Dict, List, Optional, Union
 
-from chromadb import PersistentClient
 import faiss
 import litellm
 import numpy as np
-from enums.models import Provider, EmbeddingModel
-from typing import Union
 import streamlit as st
+from chromadb import PersistentClient
+
+from enums.models import EmbeddingModel, Provider
+from core.settings import settings
 
 # Configure logging
 logging.basicConfig(level=logging.INFO,
@@ -37,8 +38,7 @@ class VectorStore:
             f"Initializing VectorStore with embedding model: {embedding_model}, chapter_mode: {chapter_mode}, persist: {persist}, collection_name: {collection_name}")
         self.embedding_model = embedding_model
         self.embedding_provider = embedding_model.provider
-        self.api_base = os.getenv(
-            "OLLAMA_HOST") if self.embedding_model.provider == Provider.OLLAMA else None
+        self.api_base = settings.ollama_host if self.embedding_model.provider == Provider.OLLAMA else None
         self.chapter_mode = chapter_mode
 
         # Initialize the embedding model

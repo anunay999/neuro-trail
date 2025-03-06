@@ -1,5 +1,3 @@
-import os
-
 from litellm import completion
 
 from core import settings
@@ -15,7 +13,6 @@ def get_llm() -> callable:
     # Find the correct Model Enum
     if not model:
         raise ValueError(f"Model {model} is not recognized.")
-
 
     # Fetch the correct API key or host URL dynamically
     if model_provider == "ollama":
@@ -36,10 +33,12 @@ def get_llm() -> callable:
                 model=f"{model_provider}/{model}",
                 messages=messages,
                 api_key=api_key if api_key else None,  # Pass only if defined
-                api_base=api_base if model_provider == "ollama" else None,  # Only for Ollama
+                api_base=api_base
+                if model_provider == "ollama"
+                else None,  # Only for Ollama
                 temperature=settings.llm_temperature,
                 max_tokens=settings.llm_max_tokens,
-                stream=True
+                stream=True,
             )
             for part in response:
                 yield part.choices[0].delta.content or ""

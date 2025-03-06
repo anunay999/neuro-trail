@@ -1,11 +1,14 @@
-import os
-import streamlit as st
 import logging
-from core.settings import settings, Settings
+import os
+
+import streamlit as st
+
+from core.settings import Settings, settings
 
 # Configure logging
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 
@@ -40,7 +43,9 @@ class ConfigManager:
             st.session_state.llm_max_tokens = settings.llm_max_tokens
             st.session_state.llm_base_url = settings.llm_base_url
             st.session_state.llm_api_key = settings.llm_api_key
-            st.session_state.vector_store_embedding_provider_api_key = settings.embedder_provider_api_key
+            st.session_state.vector_store_embedding_provider_api_key = (
+                settings.embedder_provider_api_key
+            )
 
             # Embedder Configuration
             st.session_state.embedder_provider = settings.embedder_provider
@@ -62,7 +67,13 @@ class ConfigManager:
         # Define essential config variables
         if st.session_state.llm_provider and st.session_state.llm_model:
             # Check API key for providers that need it
-            if st.session_state.llm_provider.lower() in ['openai', 'google', 'gemini', 'mistral', 'huggingface']:
+            if st.session_state.llm_provider.lower() in [
+                "openai",
+                "google",
+                "gemini",
+                "mistral",
+                "huggingface",
+            ]:
                 if st.session_state.llm_api_key:
                     st.session_state.config_initialized = True
                 else:
@@ -77,7 +88,8 @@ class ConfigManager:
             st.session_state.config_initialized = False
 
         logger.info(
-            f"Configuration status: initialized={st.session_state.config_initialized}")
+            f"Configuration status: initialized={st.session_state.config_initialized}"
+        )
         return st.session_state.config_initialized
 
     def is_configured(self):
@@ -93,12 +105,10 @@ class ConfigManager:
                 neo4j_uri=st.session_state.neo4j_uri,
                 neo4j_user=st.session_state.neo4j_user,
                 neo4j_password=st.session_state.neo4j_password,
-
                 # Vector Store Configuration
                 vector_store_provider=st.session_state.vector_store_provider,
                 vector_store_host=st.session_state.vector_store_host,
                 vector_store_port=st.session_state.vector_store_port,
-
                 # LLM Configuration
                 llm_provider=st.session_state.llm_provider,
                 llm_model=st.session_state.llm_model,
@@ -106,7 +116,6 @@ class ConfigManager:
                 llm_max_tokens=st.session_state.llm_max_tokens,
                 llm_base_url=st.session_state.llm_base_url,
                 llm_api_key=st.session_state.llm_api_key,
-
                 # Embedder Configuration
                 embedder_provider=st.session_state.embedder_provider,
                 embedder_model=st.session_state.embedder_model,
@@ -160,12 +169,20 @@ class ConfigManager:
         # Only set API key if it's not empty
         if st.session_state.vector_store_embedding_provider_api_key:
             if st.session_state.llm_provider.lower() == "openai":
-                os.environ["OPENAI_API_KEY"] = st.session_state.vector_store_embedding_provider_api_key
+                os.environ["OPENAI_API_KEY"] = (
+                    st.session_state.vector_store_embedding_provider_api_key
+                )
             elif st.session_state.llm_provider.lower() in ["google", "gemini"]:
-                os.environ["GEMINI_API_KEY"] = st.session_state.vector_store_embedding_provider_api_key
+                os.environ["GEMINI_API_KEY"] = (
+                    st.session_state.vector_store_embedding_provider_api_key
+                )
             elif st.session_state.llm_provider.lower() == "mistral":
-                os.environ["MISTRAL_API_KEY"] = st.session_state.vector_store_embedding_provider_api_key
+                os.environ["MISTRAL_API_KEY"] = (
+                    st.session_state.vector_store_embedding_provider_api_key
+                )
             elif st.session_state.llm_provider.lower() == "huggingface":
-                os.environ["HUGGINGFACE_API_KEY"] = st.session_state.vector_store_embedding_provider_api_key
+                os.environ["HUGGINGFACE_API_KEY"] = (
+                    st.session_state.vector_store_embedding_provider_api_key
+                )
 
         logger.info("Environment variables updated for current session")

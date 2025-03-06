@@ -1,15 +1,15 @@
-from typing import Dict, List, Optional, Any, Union
 import logging
+from typing import Any, Dict, List, Optional
 
 import streamlit as st
-from core.settings import settings
-from rag.base_vector_store import BaseVectorStore
-from rag.vector_store_factory import VectorStoreFactory
+
 from rag.embedding_service import EmbeddingService
+from rag.vector_store_factory import VectorStoreFactory
 
 # Configure logging
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 
@@ -19,11 +19,7 @@ class VectorStoreService:
     This provides a high-level API for working with vector stores.
     """
 
-    def __init__(
-        self,
-        chapter_mode: bool = False,
-        **kwargs
-    ):
+    def __init__(self, chapter_mode: bool = False, **kwargs):
         """
         Initialize the vector store service.
 
@@ -34,23 +30,23 @@ class VectorStoreService:
             **kwargs: Additional provider-specific parameters.
         """
         self.chapter_mode = chapter_mode
-        
+
         # Create embedding service
         self.embedding_service = EmbeddingService()
-        
+
         # Create vector store
-        self.vector_store = VectorStoreFactory.create_vector_store(
-            **kwargs
+        self.vector_store = VectorStoreFactory.create_vector_store(**kwargs)
+
+        logger.info(
+            f"Initialized VectorStoreService with {self.vector_store.__class__.__name__}"
         )
-        
-        logger.info(f"Initialized VectorStoreService with {self.vector_store.__class__.__name__}")
 
     def add_texts(
         self,
         texts: List[str],
         metadata: Optional[List[Dict[str, Any]]] = None,
         chapter: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ) -> List[str]:
         """
         Add texts to the vector store.
@@ -67,7 +63,7 @@ class VectorStoreService:
         if not texts:
             logger.warning("No texts provided to add to vector store.")
             return []
-            
+
         # Handle chapter mode
         if self.chapter_mode and chapter is not None:
             if metadata is None:
@@ -75,25 +71,25 @@ class VectorStoreService:
             else:
                 for data in metadata:
                     data["chapter"] = chapter
-                    
+
         elif metadata is None:
             metadata = [{} for _ in texts]
-            
+
         try:
             # Generate embeddings
             embeddings = self.embedding_service.generate(texts)
-            
+
             # Add to vector store
             ids = self.vector_store.add_texts(
                 texts=texts,
                 embeddings=embeddings.tolist(),
                 metadatas=metadata,
-                **kwargs
+                **kwargs,
             )
-            
+
             logger.info(f"Added {len(texts)} texts to vector store")
             return ids
-            
+
         except Exception as e:
             logger.exception(f"Error adding texts to vector store: {e}")
             st.toast(f"Failed to add texts to vector store: {e}")
@@ -104,7 +100,7 @@ class VectorStoreService:
         query: str,
         top_k: int = 5,
         filter: Optional[Dict[str, Any]] = None,
-        **kwargs
+        **kwargs,
     ) -> List[Dict[str, Any]]:
         """
         Search for similar documents in the vector store.
@@ -121,41 +117,41 @@ class VectorStoreService:
         try:
             # Generate query embedding
             query_embedding = self.embedding_service.generate(query)
-            
+
             # Search vector store
             results = self.vector_store.search(
                 query_embedding=query_embedding[0].tolist(),
                 top_k=top_k,
                 filter=filter,
-                **kwargs
+                **kwargs,
             )
-            
+
             # Format results for consistency with the original implementation
             formatted_results = []
             for item in results:
                 formatted_item = {
                     "text": item["text"],
                 }
-                
+
                 # Add metadata
                 if "metadata" in item and item["metadata"]:
                     for key, value in item["metadata"].items():
                         formatted_item[key] = value
-                
+
                 formatted_results.append(formatted_item)
-                
-            logger.info(f"Found {len(formatted_results)} results for query: '{query[:50]}...'")
+
+            logger.info(
+                f"Found {len(formatted_results)} results for query: '{query[:50]}...'"
+            )
             return formatted_results
-            
+
         except Exception as e:
             logger.exception(f"Error searching vector store: {e}")
             st.toast(f"Search failed: {e}")
             return []
 
     def get_all_documents(
-        self,
-        filter: Optional[Dict[str, Any]] = None,
-        **kwargs
+        self, filter: Optional[Dict[str, Any]] = None, **kwargs
     ) -> Dict[str, Any]:
         """
         Get all documents from the vector store, optionally filtered.
@@ -170,9 +166,11 @@ class VectorStoreService:
         try:
             # Get documents from vector store
             results = self.vector_store.get(filter=filter, **kwargs)
-            logger.info(f"Retrieved {len(results['documents'])} documents from vector store")
+            logger.info(
+                f"Retrieved {len(results['documents'])} documents from vector store"
+            )
             return results
-            
+
         except Exception as e:
             logger.exception(f"Error retrieving documents from vector store: {e}")
             st.toast(f"Failed to retrieve documents: {e}")
@@ -192,7 +190,7 @@ class VectorStoreService:
             else:
                 logger.warning("Failed to clear vector store")
             return result
-            
+
         except Exception as e:
             logger.exception(f"Error clearing vector store: {e}")
             st.toast(f"Failed to clear vector store: {e}")

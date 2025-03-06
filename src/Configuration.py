@@ -1,16 +1,26 @@
-import streamlit as st
 import logging
 
-from learning_canvas import LearningCanvas
+import streamlit as st
+
 from core.config_manager import ConfigManager
+from core.learning_canvas import canvas
 
 # Configure logging
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
+# Set page config
+st.set_page_config(
+    page_title="Neuro Trail",
+    page_icon="🧠",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
-def process_uploaded_files(canvas: LearningCanvas):
+
+def process_uploaded_files():
     """Function to process uploaded EPUB, DOCX, and PDF files."""
     logger.info("Processing uploaded files.")
 
@@ -27,8 +37,7 @@ def process_uploaded_files(canvas: LearningCanvas):
         file_name = file_info["name"]
         file_extension = file_name.split(".")[-1].lower()
 
-        logger.info(
-            f"Processing file: {file_name}, extension: {file_extension}")
+        logger.info(f"Processing file: {file_name}, extension: {file_extension}")
 
         if file_extension == "epub":
             st.info(f"Processing EPUB: {file_name}", icon="📖")
@@ -44,8 +53,7 @@ def process_uploaded_files(canvas: LearningCanvas):
 
         elif file_extension in ["docx", "pdf"]:
             logger.info(f"Skipping {file_name} (Handler not implemented yet)")
-            st.info(
-                f"Skipping {file_name} (Handler not implemented yet)", icon="📄")
+            st.info(f"Skipping {file_name} (Handler not implemented yet)", icon="📄")
             st.session_state["processing_status"] = True
         else:
             logger.warning(f"Unsupported file type: {file_extension}")
@@ -59,14 +67,14 @@ def process_uploaded_files(canvas: LearningCanvas):
         logger.info("File processing complete.")
 
 
-
 def render_advanced_configuration(config_manager: ConfigManager):
     """Renders the advanced configuration interface with multiple sections."""
     st.title("⚙️ Neuro Trail Configuration")
 
     # Configuration tabs
     config_tabs = st.tabs(
-        ["🤖 LLM", "🧠 Embeddings", "🔄 Vector Store", "🗄️ Neo4j", "📚 Knowledge Base"])
+        ["🤖 LLM", "🧠 Embeddings", "🔄 Vector Store", "🗄️ Neo4j", "📚 Knowledge Base"]
+    )
 
     # 1. LLM Configuration
     with config_tabs[0]:
@@ -76,32 +84,40 @@ def render_advanced_configuration(config_manager: ConfigManager):
         with col1:
             st.session_state.llm_provider = st.selectbox(
                 "LLM Provider",
-                options=["ollama", "openai", "google",
-                         "mistral", "huggingface"],
-                index=["ollama", "openai", "google", "mistral",
-                       "huggingface"].index(st.session_state.llm_provider),
-                help="Provider for the language model"
+                options=["ollama", "openai", "google", "mistral", "huggingface"],
+                index=["ollama", "openai", "google", "mistral", "huggingface"].index(
+                    st.session_state.llm_provider
+                ),
+                help="Provider for the language model",
             )
 
             st.session_state.llm_model = st.text_input(
                 "Model Name",
                 value=st.session_state.llm_model,
-                help="Name/ID of the specific model"
+                help="Name/ID of the specific model",
+            )
+            st.markdown(
+                "[Refer to available models](https://docs.litellm.ai/docs/providers)"
             )
 
         with col2:
-            if st.session_state.llm_provider.lower() in ["openai", "google", "mistral", "huggingface"]:
+            if st.session_state.llm_provider.lower() in [
+                "openai",
+                "google",
+                "mistral",
+                "huggingface",
+            ]:
                 st.session_state.llm_api_key = st.text_input(
                     f"{st.session_state.llm_provider.capitalize()} API Key",
                     type="password",
                     value=st.session_state.llm_api_key,
-                    help="API key for accessing the service"
+                    help="API key for accessing the service",
                 )
             else:  # Ollama
                 st.session_state.llm_base_url = st.text_input(
                     "Ollama Host URL",
                     value=st.session_state.llm_base_url,
-                    help="URL for Ollama server"
+                    help="URL for Ollama server",
                 )
 
             st.session_state.llm_temperature = st.slider(
@@ -110,7 +126,7 @@ def render_advanced_configuration(config_manager: ConfigManager):
                 max_value=1.0,
                 value=float(st.session_state.llm_temperature),
                 step=0.1,
-                help="Controls randomness in responses (0 = deterministic, 1 = creative)"
+                help="Controls randomness in responses (0 = deterministic, 1 = creative)",
             )
 
             st.session_state.llm_max_tokens = st.number_input(
@@ -119,10 +135,8 @@ def render_advanced_configuration(config_manager: ConfigManager):
                 max_value=8000,
                 value=int(st.session_state.llm_max_tokens),
                 step=100,
-                
-                help="Maximum length of generated responses"
+                help="Maximum length of generated responses",
             )
-
 
     # 2. Embeddings Configuration
     with config_tabs[1]:
@@ -132,37 +146,64 @@ def render_advanced_configuration(config_manager: ConfigManager):
         with col1:
             st.session_state.embedder_provider = st.selectbox(
                 "Embedder Provider",
-                options=["ollama", "openai", "google",
-                         "mistral", "huggingface", "jina_ai"],
-                index=["ollama", "openai", "google", "mistral", "huggingface", "jina_ai"].index(
-                    st.session_state.embedder_provider if st.session_state.embedder_provider in
-                    ["ollama", "openai", "google", "mistral", "huggingface", "jina_ai"] else "ollama"
+                options=[
+                    "ollama",
+                    "openai",
+                    "google",
+                    "mistral",
+                    "huggingface",
+                    "jina_ai",
+                ],
+                index=[
+                    "ollama",
+                    "openai",
+                    "google",
+                    "mistral",
+                    "huggingface",
+                    "jina_ai",
+                ].index(
+                    st.session_state.embedder_provider
+                    if st.session_state.embedder_provider
+                    in [
+                        "ollama",
+                        "openai",
+                        "google",
+                        "mistral",
+                        "huggingface",
+                        "jina_ai",
+                    ]
+                    else "ollama"
                 ),
-                help="Provider for text embeddings"
+                help="Provider for text embeddings",
             )
 
             st.session_state.embedder_model = st.text_input(
                 "Embedder Model",
                 value=st.session_state.embedder_model,
-                help="Name of the embedding model"
+                help="Name of the embedding model",
             )
 
         with col2:
             st.session_state.embedder_base_url = st.text_input(
                 "Embedder Base URL",
                 value=st.session_state.embedder_base_url,
-                help="Base URL for the embedding service (mainly for Ollama)"
+                help="Base URL for the embedding service (mainly for Ollama)",
             )
 
-            if st.session_state.embedder_provider.lower() in ["openai", "google", "mistral", "huggingface"]:
-                st.session_state.vector_store_embedding_provider_api_key = st.text_input(
-                    f"{st.session_state.embedder_provider.capitalize()} API Key",
-                    type="password",
-                    value=st.session_state.vector_store_embedding_provider_api_key,
-                    help="API key for accessing the embedding service"
+            if st.session_state.embedder_provider.lower() in [
+                "openai",
+                "google",
+                "mistral",
+                "huggingface",
+            ]:
+                st.session_state.vector_store_embedding_provider_api_key = (
+                    st.text_input(
+                        f"{st.session_state.embedder_provider.capitalize()} API Key",
+                        type="password",
+                        value=st.session_state.vector_store_embedding_provider_api_key,
+                        help="API key for accessing the embedding service",
+                    )
                 )
-
-
 
     # 3. Vector Store Configuration
     with config_tabs[2]:
@@ -172,29 +213,28 @@ def render_advanced_configuration(config_manager: ConfigManager):
             "Vector Store Provider",
             options=["qdrant", "chroma", "pinecone", "weaviate"],
             index=["qdrant", "chroma", "pinecone", "weaviate"].index(
-                st.session_state.vector_store_provider if st.session_state.vector_store_provider in
-                ["qdrant", "chroma", "pinecone", "weaviate"] else "qdrant"
+                st.session_state.vector_store_provider
+                if st.session_state.vector_store_provider
+                in ["qdrant", "chroma", "pinecone", "weaviate"]
+                else "qdrant"
             ),
-            help="Vector database for storing embeddings"
+            help="Vector database for storing embeddings",
         )
 
         st.session_state.vector_store_host = st.text_input(
             "Vector Store Host",
             value=st.session_state.vector_store_host,
-            help="Hostname or IP address of the vector store"
+            help="Hostname or IP address of the vector store",
         )
-
 
         if st.session_state.vector_store_host in ["qdrant", "pinecone", "weaviate"]:
             st.session_state.vector_store_port = st.number_input(
                 "Vector Store Port",
                 min_value=1,
                 value=int(st.session_state.vector_store_port),
-                help="Port number for the vector store"
-                )
+                help="Port number for the vector store",
+            )
 
-
-    
     # 4. Neo4j Configuration
     with config_tabs[3]:
         st.subheader("Neo4j Graph Database Configuration")
@@ -204,21 +244,21 @@ def render_advanced_configuration(config_manager: ConfigManager):
             st.session_state.neo4j_uri = st.text_input(
                 "Neo4j URI",
                 value=st.session_state.neo4j_uri,
-                help="URI for connecting to Neo4j (e.g., bolt://localhost:7687)"
+                help="URI for connecting to Neo4j (e.g., bolt://localhost:7687)",
             )
 
         with col2:
             st.session_state.neo4j_user = st.text_input(
                 "Neo4j Username",
                 value=st.session_state.neo4j_user,
-                help="Username for Neo4j authentication"
+                help="Username for Neo4j authentication",
             )
 
             st.session_state.neo4j_password = st.text_input(
                 "Neo4j Password",
                 type="password",
                 value=st.session_state.neo4j_password,
-                help="Password for Neo4j authentication"
+                help="Password for Neo4j authentication",
             )
 
     # 5. Knowledge Base
@@ -231,7 +271,7 @@ def render_advanced_configuration(config_manager: ConfigManager):
             "Upload documents (EPUB, DOCX, PDF)",
             accept_multiple_files=True,
             type=["epub", "docx", "pdf"],
-            help="Supports EPUB, DOCX, and PDF formats"
+            help="Supports EPUB, DOCX, and PDF formats",
         )
 
         # Process uploaded files
@@ -240,32 +280,27 @@ def render_advanced_configuration(config_manager: ConfigManager):
                 # Read the file bytes immediately
                 file_data = uf.read()
                 # Check if we already have a file with the same name
-                existing_names = [f["name"]
-                                  for f in st.session_state["uploaded_files"]]
+                existing_names = [f["name"] for f in st.session_state["uploaded_files"]]
 
                 if uf.name not in existing_names:
                     # Store only serializable data: name + bytes
-                    st.session_state["uploaded_files"].append({
-                        "name": uf.name,
-                        "data": file_data
-                    })
+                    st.session_state["uploaded_files"].append(
+                        {"name": uf.name, "data": file_data}
+                    )
                     logger.info(f"Added file to upload queue: {uf.name}")
 
             # Display list of files to process
             if st.session_state["uploaded_files"]:
                 st.markdown("### Files Ready to Process")
                 for idx, file_info in enumerate(st.session_state["uploaded_files"]):
-                    st.text(f"{idx+1}. {file_info['name']}")
+                    st.text(f"{idx + 1}. {file_info['name']}")
 
                 # Process button
                 if st.button(
-                    "Process Files",
-                    type="secondary",
-                    use_container_width=True
+                    "Process Files", type="secondary", use_container_width=True
                 ):
-                    process_uploaded_files(
-                        st.session_state.get("_learning_canvas"))
-    
+                    process_uploaded_files()
+
     # Save all configuration changes
     if st.button("Save Configuration", type="primary", use_container_width=True):
         if config_manager.save_configuration():
@@ -276,23 +311,12 @@ def render_advanced_configuration(config_manager: ConfigManager):
         else:
             st.error("❌ Failed to save configuration. Please check the logs.")
 
-    
 
+# Initialize configuration manager
+config_manager = ConfigManager()
 
-def configuration_ui(canvas: LearningCanvas):
-    """
-    Main configuration UI handler that shows either first-time setup
-    or advanced configuration based on state.
-    """
-    # Store canvas reference in session state for callbacks
-    st.session_state._learning_canvas = canvas
+render_advanced_configuration(config_manager)
 
-    # Initialize configuration manager
-    config_manager = ConfigManager()
-
-    render_advanced_configuration(config_manager)
-
-    # After configuration is complete, initialize the LearningCanvas with selected models
-    if config_manager.is_configured():
-        logger.info("Canvas initialized")
-        
+# After configuration is complete, initialize the LearningCanvas with selected models
+if config_manager.is_configured():
+    logger.info("Canvas initialized")

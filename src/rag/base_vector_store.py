@@ -1,12 +1,11 @@
-from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Any, Union
 import logging
-
-import numpy as np
+from abc import ABC, abstractmethod
+from typing import Any, Dict, List, Optional
 
 # Configure logging
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 
@@ -16,12 +15,7 @@ class BaseVectorStore(ABC):
     Implement this class to create a new vector store provider.
     """
 
-    def __init__(
-        self,
-        collection_name: str,
-        dimension: Optional[int] = None,
-        **kwargs
-    ):
+    def __init__(self, collection_name: str, dimension: Optional[int] = None, **kwargs):
         """
         Initialize the base vector store.
 
@@ -32,7 +26,9 @@ class BaseVectorStore(ABC):
         """
         self.collection_name = collection_name
         self.dimension = dimension
-        logger.info(f"Initializing {self.__class__.__name__} with collection '{collection_name}'")
+        logger.info(
+            f"Initializing {self.__class__.__name__} with collection '{collection_name}'"
+        )
 
     @abstractmethod
     def add_texts(
@@ -41,7 +37,7 @@ class BaseVectorStore(ABC):
         embeddings: List[List[float]],
         metadatas: Optional[List[Dict[str, Any]]] = None,
         ids: Optional[List[str]] = None,
-        **kwargs
+        **kwargs,
     ) -> List[str]:
         """
         Add texts and their embeddings to the vector store.
@@ -64,7 +60,7 @@ class BaseVectorStore(ABC):
         query_embedding: List[float],
         top_k: int = 5,
         filter: Optional[Dict[str, Any]] = None,
-        **kwargs
+        **kwargs,
     ) -> List[Dict[str, Any]]:
         """
         Search for similar documents based on a query embedding.
@@ -85,7 +81,7 @@ class BaseVectorStore(ABC):
         self,
         ids: Optional[List[str]] = None,
         filter: Optional[Dict[str, Any]] = None,
-        **kwargs
+        **kwargs,
     ) -> bool:
         """
         Delete documents from the vector store.
@@ -105,7 +101,7 @@ class BaseVectorStore(ABC):
         self,
         ids: Optional[List[str]] = None,
         filter: Optional[Dict[str, Any]] = None,
-        **kwargs
+        **kwargs,
     ) -> Dict[str, Any]:
         """
         Get documents from the vector store.

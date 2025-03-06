@@ -3,7 +3,7 @@ name = "neuro-trail"
 version = "0.1.0"
 description = "Personalized Memory Augmented Learning"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 dependencies = [
     "ebooklib>=0.18",
     "neo4j>=5.28.1",
@@ -16,7 +16,8 @@ dependencies = [
     "langchain-community>=0.3.18",
     "chromadb>=0.6.3",
     "googleapis-common-protos>=1.68.0",
-    "faiss-cpu>=1.10.0",
+    "pydantic>=2.10.6",
+    "pydantic-settings>=2.8.1",
 ]
 
 [project.packages]

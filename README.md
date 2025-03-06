@@ -5,11 +5,10 @@ NeuroTrail is an AI-powered learning system designed to enhance personalized lea
 
 ### Key Features
 - **Interactive Knowledge Upload**: Supports EPUB files for ingestion and interaction with an LLM.
-- **Quiz Generation**: Uses embeddings and LLMs to generate self-testing questions from books.
 - **Personalized Knowledge Trails**: Users can define learning paths based on interests.
-- **Scheduled Learning Digests**: Periodic summaries sent via email.
 - **Persistent Memory Module**: Tracks learned content and provides recommendations.
 - **Deep Knowledge Graph Integration**: Ensures semantic linking and retrieval.
+- **Configure Prompt Templates**: Ensures personalized responses
 
 ## Demo
 Try demo at [https://neuro-trail.streamlit.app](https://neuro-trail.streamlit.app)
@@ -18,6 +17,10 @@ Try demo at [https://neuro-trail.streamlit.app](https://neuro-trail.streamlit.ap
 
 
 ## Project Setup
+
+### Configure `.env` 
+
+- Update required environment variables
 
 ### Initialize the Project with Docker
 
@@ -29,10 +32,14 @@ docker compose up --build
 
 It should start a streamlit app on port `8503`.
 
+The app allows configuration updates and saves them to .env files. If you prefer not to persist changes this way, remove .env from the Docker Compose volumes to keep configurations only within the Docker image.
+
 ## Future Enhancements
 - User memory persistence for personalized learning paths
 - Agent Ecosystem for personalized experience
 - Quiz Generation
+- Scheduled Learning Digests
+
 - Multi-modal EPUB analysis (text, tables, images)
 - Expanded document support (PDFs, DOCX)
 - AI-driven feedback refinement
@@ -40,6 +47,7 @@ It should start a streamlit app on port `8503`.
 ## Advanced settings
 - Modify the environment variables in the docker-compose.yml file to customize neo4j project settings.
 - To run Ollama, ensure it is installed and accessible from the Docker container. Update the environment variables in the docker-compose.yml file accordingly.
+- On MacOS Docker Desktop, goto Settings > Resources > Network and "Enable Host Networking".
 
 ## Resources
 - [Intro Blog](https://medium.com/@anunayaatipamula/building-a-memory-augmented-learning-companion-from-idea-to-implementation-49970ac6da16)

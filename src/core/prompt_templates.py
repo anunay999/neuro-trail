@@ -363,7 +363,6 @@ class PromptTemplateManager:
         Returns:
             Dictionary of template IDs to template dictionaries
         """
-
         return st.session_state["prompt_templates"]
 
     def set_active_template(self, template_id: str) -> bool:

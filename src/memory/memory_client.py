@@ -37,7 +37,6 @@ class LLMConfig(BaseModel):
     provider: str = "litellm"
     temperature: float = 0.0
     max_tokens: int = 2000
-    base_url: Optional[str] = None
     api_key: Optional[str] = None
 
 
@@ -147,9 +146,9 @@ class CommonMemoryClient(AbstractMemoryClient):
                 "config": self.config.graph_store.dict(exclude={"provider"}, exclude_none=True)
             }
 
-    def add(self, data: Union[str, List[Dict[str, str]]], user_id: str, metadata: Optional[Dict[str, Any]] = None) -> Dict:
+    def add(self, messages: Union[str, List[Dict[str, str]]], user_id: str, metadata: Optional[Dict[str, Any]] = None) -> Dict:
         """Add a memory for a user."""
-        return self.memory.add(data, user_id=user_id, metadata=metadata or {})
+        return self.memory.add(messages, user_id=user_id, metadata=metadata or {})
 
     def get(self, memory_id: str) -> Dict:
         """Get a specific memory by ID."""
@@ -224,7 +223,6 @@ def create_memory_client_from_settings() -> CommonMemoryClient:
     llm_config = LLMConfig(
         provider=settings.llm_provider,
         model=settings.llm_model,
-        base_url=settings.llm_base_url if settings.llm_provider == "ollama" else None,
         api_key=settings.llm_api_key if settings.llm_api_key else None
     )
 

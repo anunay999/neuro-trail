@@ -20,8 +20,8 @@ EXPOSE 8503
 COPY . .
 
 # Set working directory to `src`
-WORKDIR /app
+WORKDIR /app/src
 
 # Start both Neo4j and the Python application
 CMD ["/bin/bash", "-c", "\
-    uv run streamlit run src/Configuration.py --server.port=8503"]
+    uv run streamlit run Configuration.py --server.port=8503"]

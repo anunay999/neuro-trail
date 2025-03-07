@@ -164,7 +164,8 @@ class UserMemory:
             return response
 
         # Otherwise create new preferences
-        logger.info("No existing preferences found, creating new preferences.")
+        logger.info(
+            f"No existing preferences found, creating new preferences.\nPreferences: {preferences.dict(exclude_none=True)}, User: {user_id}, Metadata: {metadata}")
         response = self.memory_client.add(
             preferences.dict(exclude_none=True),
             user_id=user_id,

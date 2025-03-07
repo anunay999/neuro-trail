@@ -1340,8 +1340,10 @@ dependencies = [
     { name = "mem0ai" },
     { name = "neo4j" },
     { name = "numpy" },
+    { name = "ollama" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
+    { name = "rank-bm25" },
     { name = "ruff" },
     { name = "streamlit" },
     { name = "tenacity" },
@@ -1358,8 +1360,10 @@ requires-dist = [
     { name = "mem0ai", specifier = ">=0.1.65" },
     { name = "neo4j", specifier = ">=5.28.1" },
     { name = "numpy", specifier = "==1.26.4" },
+    { name = "ollama", specifier = ">=0.4.7" },
     { name = "pydantic", specifier = ">=2.10.6" },
     { name = "pydantic-settings", specifier = ">=2.8.1" },
+    { name = "rank-bm25", specifier = ">=0.2.2" },
     { name = "ruff", specifier = ">=0.9.7" },
     { name = "streamlit", specifier = ">=1.42.2" },
     { name = "tenacity", specifier = ">=9.0.0" },
@@ -1388,6 +1392,19 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/6d/fa/fbf4001037904031639e6bfbfc02badfc7e12f137a8afa254df6c4c8a670/oauthlib-3.2.2.tar.gz", hash = "sha256:9859c40929662bec5d64f34d01c99e093149682a3f38915dc0655d5a633dd918", size = 177352 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/7e/80/cab10959dc1faead58dc8384a781dfbf93cb4d33d50988f7a69f1b7c9bbe/oauthlib-3.2.2-py3-none-any.whl", hash = "sha256:8139f29aac13e25d502680e9e19963e83f16838d48a0d71c287fe40e7067fbca", size = 151688 },
+]
+
+[[package]]
+name = "ollama"
+version = "0.4.7"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "httpx" },
+    { name = "pydantic" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/b0/6d/dc77539c735bbed5d0c873fb029fb86aa9f0163df169b34152914331c369/ollama-0.4.7.tar.gz", hash = "sha256:891dcbe54f55397d82d289c459de0ea897e103b86a3f1fad0fdb1895922a75ff", size = 12843 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/31/83/c3ffac86906c10184c88c2e916460806b072a2cfe34cdcaf3a0c0e836d39/ollama-0.4.7-py3-none-any.whl", hash = "sha256:85505663cca67a83707be5fb3aeff0ea72e67846cea5985529d8eca4366564a1", size = 13210 },
 ]
 
 [[package]]
@@ -2108,6 +2125,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/eb/58/1e4acd7ff7637ed56a66e5044699e7af6067232703d0b34f05068fc6234b/qdrant_client-1.13.3.tar.gz", hash = "sha256:61ca09e07c6d7ac0dfbdeb13dca4fe5f3e08fa430cb0d74d66ef5d023a70adfc", size = 266278 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/dd/b4/bd676f91f5234ab59282e4a110f324029684482cbe08e7a1c77b6338013b/qdrant_client-1.13.3-py3-none-any.whl", hash = "sha256:f52cacbb936e547d3fceb1aaed3e3c56be0ebfd48e8ea495ea3dbc89c671d1d2", size = 306674 },
+]
+
+[[package]]
+name = "rank-bm25"
+version = "0.2.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/fc/0a/f9579384aa017d8b4c15613f86954b92a95a93d641cc849182467cf0bb3b/rank_bm25-0.2.2.tar.gz", hash = "sha256:096ccef76f8188563419aaf384a02f0ea459503fdf77901378d4fd9d87e5e51d", size = 8347 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/2a/21/f691fb2613100a62b3fa91e9988c991e9ca5b89ea31c0d3152a3210344f9/rank_bm25-0.2.2-py3-none-any.whl", hash = "sha256:7bd4a95571adadfc271746fa146a4bcfd89c0cf731e49c3d1ad863290adbe8ae", size = 8584 },
 ]
 
 [[package]]

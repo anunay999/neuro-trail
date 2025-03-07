@@ -1,14 +1,16 @@
 services:
   neo4j:
-    image: neo4j:latest # Or a specific version, e.g., neo4j:4.4
+    image: neo4j:latest
     network_mode: "host"
     ports:
-      - "7474:7474" # HTTP
-      - "7687:7687" # Bolt
+      - "7474:7474"
+      - "7687:7687"
     environment:
       NEO4J_AUTH: neo4j/password
+      NEO4J_PLUGINS: '["apoc"]'
+      NEO4J_dbms_security_procedures_unrestricted: apoc.*
     volumes:
-      - neo4j_data:/data # Persist Neo4j data
+      - neo4j_data:/data
 
   neuro-trail:
     build: . # Build from the Dockerfile in the current directory

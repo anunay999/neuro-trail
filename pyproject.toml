@@ -19,6 +19,8 @@ dependencies = [
     "pydantic>=2.10.6",
     "pydantic-settings>=2.8.1",
     "mem0ai>=0.1.65",
+    "ollama>=0.4.7",
+    "rank-bm25>=0.2.2",
 ]
 
 [project.packages]

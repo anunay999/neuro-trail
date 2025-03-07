@@ -1,3 +1,4 @@
+from email.mime import base
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
@@ -5,6 +6,13 @@ from typing import Any, Dict, List, Optional, Union
 from mem0 import Memory
 from pydantic import BaseModel, Field
 from core.settings import settings
+import logging
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 
 class MemoryType(str, Enum):
@@ -23,25 +31,28 @@ class VectorStoreConfig(BaseModel):
     username: Optional[str] = None
     password: Optional[str] = None
 
+
 class LLMConfig(BaseModel):
-    provider: str
     model: str
+    provider: str = "litellm"
     temperature: float = 0.0
     max_tokens: int = 2000
     base_url: Optional[str] = None
     api_key: Optional[str] = None
 
+
 class EmbedderConfig(BaseModel):
     provider: str
     model: str
-    base_url: Optional[str] = None
     api_key: Optional[str] = None
+
 
 class GraphStoreConfig(BaseModel):
     provider: str
     url: Optional[str] = None
     username: Optional[str] = None
     password: Optional[str] = None
+
 
 class MemoryConfig(BaseModel):
     vector_store: Optional[VectorStoreConfig] = None
@@ -99,10 +110,13 @@ class CommonMemoryClient(AbstractMemoryClient):
     """
     Common implementation of memory operations using mem0 SDK.
     """
+
     def __init__(self, config: MemoryConfig):
         """Initialize the memory client with configuration."""
         self.config = config
         self._convert_config_to_mem0_format()
+        logger.info(
+            f"Initializing memory client with config: \n{self.mem0_config}")
         self.memory = Memory.from_config(config_dict=self.mem0_config)
 
     def _convert_config_to_mem0_format(self):
@@ -171,19 +185,47 @@ class CommonMemoryClient(AbstractMemoryClient):
 
 def create_memory_client_from_settings() -> CommonMemoryClient:
     """Create a memory client from application settings."""
-    vector_store_config = VectorStoreConfig(
-        provider=settings.vector_store_provider,
-        collection_name=settings.vector_store_user_collection,
-        host=settings.vector_store_host,
-        port=settings.vector_store_port
-    )
+    vector_store_config = None
+    if settings.vector_store_provider == "chroma":
+        vector_store_config = VectorStoreConfig(
+            provider=settings.vector_store_provider,
+            collection_name=settings.vector_store_user_collection,
+            port=settings.vector_store_port
+        )
+    elif settings.vector_store_provider == "pinecone":
+        vector_store_config = VectorStoreConfig(
+            provider=settings.vector_store_provider,
+            collection_name=settings.vector_store_user_collection,
+            api_key=settings.vector_store_api_key,
+            environment=settings.vector_store_environment
+        )
+    elif settings.vector_store_provider == "weaviate":
+        vector_store_config = VectorStoreConfig(
+            provider=settings.vector_store_provider,
+            collection_name=settings.vector_store_user_collection,
+            url=settings.vector_store_url,
+            auth=settings.vector_store_auth
+        )
 
+    elif settings.vector_store_provider == "qdrant":
+        vector_store_config = VectorStoreConfig(
+            provider=settings.vector_store_provider,
+            collection_name=settings.vector_store_user_collection,
+            url=settings.vector_store_url,
+            auth=settings.vector_store_auth
+        )
 
     embedder_config = EmbedderConfig(
         provider=settings.embedder_provider,
         model=settings.embedder_model,
-        base_url=settings.embedder_base_url,
         api_key=settings.embedder_provider_api_key if settings.embedder_provider_api_key else None
+    )
+
+    llm_config = LLMConfig(
+        provider=settings.llm_provider,
+        model=settings.llm_model,
+        base_url=settings.llm_base_url if settings.llm_provider == "ollama" else None,
+        api_key=settings.llm_api_key if settings.llm_api_key else None
     )
 
     # If Neo4j is configured, add graph store
@@ -198,6 +240,7 @@ def create_memory_client_from_settings() -> CommonMemoryClient:
 
     memory_config = MemoryConfig(
         vector_store=vector_store_config,
+        llm=llm_config,
         embedder=embedder_config,
         graph_store=graph_store_config
     )

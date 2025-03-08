@@ -71,7 +71,7 @@ def chat_ui():
 
     with st.sidebar:
         if st.button("Clear Chat", use_container_width=True):
-            st.session_state["messages"] = []
+            st.session_state["chat_history"] = []
             st.session_state["chat_error"] = None
             st.rerun()
 

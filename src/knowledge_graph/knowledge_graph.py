@@ -1,12 +1,16 @@
+import logging
 import streamlit as st
 from neo4j import GraphDatabase
 from neo4j.exceptions import AuthError, ClientError, ServiceUnavailable
+from tenacity import retry, wait_fixed, stop_after_attempt
 
 from core.settings_config import settings
 
 # -------------------------------------------
 # Build Knowledge graph on Neo4j
 # -------------------------------------------
+
+logger = logging.getLogger(__name__)
 
 
 class KnowledgeGraph:
@@ -16,11 +20,7 @@ class KnowledgeGraph:
 
     def connect(self):
         try:
-            self.driver = GraphDatabase.driver(
-                settings.neo4j_uri, auth=(settings.neo4j_user, settings.neo4j_password)
-            )
-            with self.driver.session() as session:  # Verify connectivity immediately
-                session.run("RETURN 1")
+            self.test_connection()
             # Show success in Streamlit
             print("Successfully connected to Neo4j database.")
         except ServiceUnavailable:
@@ -38,6 +38,16 @@ class KnowledgeGraph:
             st.toast(f"Client error: {e}", icon="⚠️")
         except Exception as e:
             st.toast(f"An unexpected error occurred: {e}", icon="⚠️")
+
+    @retry(wait=wait_fixed(2), stop=stop_after_attempt(7))
+    def test_connection(self):
+        self.driver = GraphDatabase.driver(
+                settings.neo4j_uri, auth=(settings.neo4j_user, settings.neo4j_password))
+        with self.driver.session() as session:  # Verify connectivity immediately
+            session.run("RETURN 1")
+
+        # Show success in Streamlit
+        logger.info("Successfully connected to Neo4j database.")
 
     def close(self):
         if self.driver:

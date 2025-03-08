@@ -1,6 +1,6 @@
 from litellm import completion
 
-from core import settings
+from core.settings_config import settings
 
 
 def get_llm() -> callable:

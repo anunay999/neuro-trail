@@ -6,7 +6,7 @@ import numpy as np
 import streamlit as st
 from tenacity import retry, stop_after_attempt, wait_exponential
 
-from core.settings import settings
+from core.settings_config import settings
 
 # Configure logging
 logging.basicConfig(

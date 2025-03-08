@@ -3,7 +3,7 @@ from typing import Optional
 
 import streamlit as st
 
-from core.settings import settings
+from core.settings_config import settings
 from rag.base_vector_store import BaseVectorStore
 from rag.chroma_vector_store import ChromaVectorStore
 

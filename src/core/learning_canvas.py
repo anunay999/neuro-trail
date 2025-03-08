@@ -5,7 +5,7 @@ import tempfile
 
 import streamlit as st
 
-from core.settings import settings
+from core.settings_config import settings
 from epub_extract import extract_epub
 from knowledge_graph import KnowledgeGraph
 from llm import get_llm

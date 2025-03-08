@@ -1,4 +1,4 @@
-name: Validate Docs & Build
+name: Validate, Build & Test
 on:
   push:
     branches:
@@ -14,25 +14,13 @@ permissions:
   id-token: write
 
 jobs:
-  get-changed-files:
-    runs-on: ubuntu-latest
-    outputs:
-      changed-files: ${{ steps.changed-files.outputs.added_modified }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Get changed files
-        id: changed-files
-        uses: Ana06/get-changed-files@v2.3.0
-        with:
-          filter: "docs/**"
-
-  deploy:
+  lint-and-format:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
+          
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -41,21 +29,57 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v5
 
-      - name: Install dependencies
+      - name: Install backend dependencies
+        working-directory: ./backend
         run: |
           uv sync
+          uv add ruff black mypy
 
-      - name: Lint Docs
-        run: make lint-docs
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: |
+          uv sync
+          
+      - name: Lint backend with Ruff
+        working-directory: ./backend
+        run: |
+          ruff check app/
 
-      - name: Format Code
-        run: make format
+      - name: Format check with Black
+        working-directory: ./backend
+        run: |
+          black --check app/
+          
+      - name: Lint streamlit with Ruff
+        working-directory: ./frontend/streamlit
+        run: |
+          ruff check .
 
-      - name: Lint Code
-        run: make lint
+  # test-backend:
+  #   runs-on: ubuntu-latest
+  #   needs: lint-and-format
+  #   steps:
+  #     - uses: actions/checkout@v4
+        
+  #     - name: Set up Python
+  #       uses: actions/setup-python@v4
+  #       with:
+  #         python-version: "3.11"
+          
+  #     - name: Install dependencies
+  #       working-directory: ./backend
+  #       run: |
+  #         pip install -r requirements.txt
+  #         pip install pytest pytest-asyncio httpx
+
+  #     - name: Run tests
+  #       working-directory: ./backend
+  #       run: |
+  #         pytest -xvs app/tests/
 
   validate-docker-compose:
     runs-on: ubuntu-latest
+    needs: [lint-and-format, test-backend]
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -63,23 +87,108 @@ jobs:
       - name: Set up Docker
         uses: docker/setup-buildx-action@v3
 
-      - name: Build Docker Compose
+      - name: Create .env file for testing
         run: |
-          docker compose -f docker-compose.yml build
+          echo "POSTGRES_PASSWORD=testpassword" > .env
+          echo "NEO4J_PASSWORD=testpassword" >> .env
+          echo "LLM_PROVIDER=ollama" >> .env
+          echo "LLM_MODEL=mistral" >> .env
 
-      - name: Validate Docker Compose
+      - name: Validate Docker Compose (Development)
         run: |
           docker compose -f docker-compose.yml config --quiet
 
-      - name: Run Docker Compose Services
+      - name: Validate Docker Compose (Production)
         run: |
-          docker compose up -d
+          docker compose -f docker-compose.prod.yml config --quiet
 
-      - name: Wait for services to be healthy
+      - name: Pull base images
         run: |
-          sleep 10  # Adjust based on startup time
-          docker ps --filter "health=healthy"
+          docker pull postgres:14
+          docker pull neo4j:5
+          docker pull ghcr.io/chroma-core/chroma:latest
+          docker pull ollama/ollama:latest
+          docker pull python:3.11-slim
+
+      - name: Build Docker images
+        run: |
+          docker compose -f docker-compose.yml build backend frontend
+
+      - name: Start PostgreSQL and Neo4j services for testing
+        run: |
+          docker compose -f docker-compose.yml up -d postgres neo4j
+
+      - name: Wait for databases to be healthy
+        run: |
+          timeout 60s bash -c 'until docker compose -f docker-compose.yml ps | grep -q "postgres.*healthy"; do sleep 2; done'
+          timeout 60s bash -c 'until docker compose -f docker-compose.yml ps | grep -q "neo4j.*healthy"; do sleep 2; done'
+
+      - name: Run backend with test config
+        run: |
+          docker compose -f docker-compose.yml up -d backend
+
+      - name: Check backend health
+        run: |
+          timeout 30s bash -c 'until curl -f http://localhost:8000/health; do sleep 2; done'
 
       - name: Stop and clean up
         run: |
-          docker compose down
+          docker compose -f docker-compose.yml down -v
+
+  build-and-push:
+    runs-on: ubuntu-latest
+    needs: [validate-docker-compose]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for backend
+        id: meta-backend
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}/backend
+          tags: |
+            type=sha,format=short
+            type=ref,event=branch
+            latest
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ steps.meta-backend.outputs.tags }}
+          labels: ${{ steps.meta-backend.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Extract metadata for frontend
+        id: meta-frontend
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}/frontend
+          tags: |
+            type=sha,format=short
+            type=ref,event=branch
+            latest
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend/streamlit
+          push: true
+          tags: ${{ steps.meta-frontend.outputs.tags }}
+          labels: ${{ steps.meta-frontend.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

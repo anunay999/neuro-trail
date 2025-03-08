@@ -12,7 +12,7 @@ def flatten_toc(toc_list):
         for item in items:
             if isinstance(item, tuple):
                 # Format: (link, title, subitems)
-                link, title, *rest = item
+                title, link, *rest = item
                 flat.append(title)
                 if rest and isinstance(rest[0], list):
                     _flatten(rest[0])
@@ -56,7 +56,7 @@ def extract_epub(epub_path):
         flat_chapters = flatten_toc(toc)
         processed = []
         for chap in flat_chapters:
-            if isinstance(chap, epub.Link):
+            if isinstance(chap, epub.Link) or isinstance(chap, epub.Section):
                 chapter_title = chap.title  # Use the title attribute of Link
             else:
                 chapter_title = str(chap)

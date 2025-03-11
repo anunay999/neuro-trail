@@ -3,7 +3,7 @@ import os
 
 import streamlit as st
 
-from core.settings import Settings, settings
+from core.settings_config import Settings, settings
 
 # Configure logging
 logging.basicConfig(

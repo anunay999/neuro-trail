@@ -98,7 +98,7 @@ class VectorStoreService:
     def search(
         self,
         query: str,
-        top_k: int = 5,
+        top_k: int = 3,
         filter: Optional[Dict[str, Any]] = None,
         **kwargs,
     ) -> List[Dict[str, Any]]:
@@ -172,7 +172,8 @@ class VectorStoreService:
             return results
 
         except Exception as e:
-            logger.exception(f"Error retrieving documents from vector store: {e}")
+            logger.exception(
+                f"Error retrieving documents from vector store: {e}")
             st.toast(f"Failed to retrieve documents: {e}")
             return {"ids": [], "documents": [], "metadatas": []}
 

@@ -37,7 +37,8 @@ def process_uploaded_files():
         file_name = file_info["name"]
         file_extension = file_name.split(".")[-1].lower()
 
-        logger.info(f"Processing file: {file_name}, extension: {file_extension}")
+        logger.info(
+            f"Processing file: {file_name}, extension: {file_extension}")
 
         if file_extension == "epub":
             st.info(f"Processing EPUB: {file_name}", icon="📖")
@@ -53,7 +54,8 @@ def process_uploaded_files():
 
         elif file_extension in ["docx", "pdf"]:
             logger.info(f"Skipping {file_name} (Handler not implemented yet)")
-            st.info(f"Skipping {file_name} (Handler not implemented yet)", icon="📄")
+            st.info(
+                f"Skipping {file_name} (Handler not implemented yet)", icon="📄")
             st.session_state["processing_status"] = True
         else:
             logger.warning(f"Unsupported file type: {file_extension}")
@@ -73,7 +75,7 @@ def render_advanced_configuration(config_manager: ConfigManager):
 
     # Configuration tabs
     config_tabs = st.tabs(
-        ["🤖 LLM", "🧠 Embeddings", "🔄 Vector Store", "🗄️ Neo4j", "📚 Knowledge Base"]
+        ["🤖 LLM", "🧠 Embeddings", "🔄 Vector Store", "📚 Knowledge Base"]
     )
 
     # 1. LLM Configuration
@@ -84,8 +86,9 @@ def render_advanced_configuration(config_manager: ConfigManager):
         with col1:
             st.session_state.llm_provider = st.selectbox(
                 "LLM Provider",
-                options=["ollama", "openai", "google", "mistral", "huggingface"],
-                index=["ollama", "openai", "google", "mistral", "huggingface"].index(
+                options=["ollama", "openai", "google",
+                         "mistral", "huggingface", "gemini"],
+                index=["ollama", "openai", "google", "mistral", "huggingface", "gemini"].index(
                     st.session_state.llm_provider
                 ),
                 help="Provider for the language model",
@@ -106,6 +109,7 @@ def render_advanced_configuration(config_manager: ConfigManager):
                 "google",
                 "mistral",
                 "huggingface",
+                "gemini"
             ]:
                 st.session_state.llm_api_key = st.text_input(
                     f"{st.session_state.llm_provider.capitalize()} API Key",
@@ -235,34 +239,34 @@ def render_advanced_configuration(config_manager: ConfigManager):
                 help="Port number for the vector store",
             )
 
-    # 4. Neo4j Configuration
-    with config_tabs[3]:
-        st.subheader("Neo4j Graph Database Configuration")
+    # # 4. Neo4j Configuration
+    # with config_tabs[3]:
+    #     st.subheader("Neo4j Graph Database Configuration")
 
-        col1, col2 = st.columns([1, 1])
-        with col1:
-            st.session_state.neo4j_uri = st.text_input(
-                "Neo4j URI",
-                value=st.session_state.neo4j_uri,
-                help="URI for connecting to Neo4j (e.g., bolt://localhost:7687)",
-            )
+    #     col1, col2 = st.columns([1, 1])
+    #     with col1:
+    #         st.session_state.neo4j_uri = st.text_input(
+    #             "Neo4j URI",
+    #             value=st.session_state.neo4j_uri,
+    #             help="URI for connecting to Neo4j (e.g., bolt://localhost:7687)",
+    #         )
 
-        with col2:
-            st.session_state.neo4j_user = st.text_input(
-                "Neo4j Username",
-                value=st.session_state.neo4j_user,
-                help="Username for Neo4j authentication",
-            )
+    #     with col2:
+    #         st.session_state.neo4j_user = st.text_input(
+    #             "Neo4j Username",
+    #             value=st.session_state.neo4j_user,
+    #             help="Username for Neo4j authentication",
+    #         )
 
-            st.session_state.neo4j_password = st.text_input(
-                "Neo4j Password",
-                type="password",
-                value=st.session_state.neo4j_password,
-                help="Password for Neo4j authentication",
-            )
+    #         st.session_state.neo4j_password = st.text_input(
+    #             "Neo4j Password",
+    #             type="password",
+    #             value=st.session_state.neo4j_password,
+    #             help="Password for Neo4j authentication",
+    #         )
 
     # 5. Knowledge Base
-    with config_tabs[4]:
+    with config_tabs[3]:
         st.subheader("Knowledge Base Management")
 
         # File uploader for documents
@@ -280,7 +284,8 @@ def render_advanced_configuration(config_manager: ConfigManager):
                 # Read the file bytes immediately
                 file_data = uf.read()
                 # Check if we already have a file with the same name
-                existing_names = [f["name"] for f in st.session_state["uploaded_files"]]
+                existing_names = [f["name"]
+                                  for f in st.session_state["uploaded_files"]]
 
                 if uf.name not in existing_names:
                     # Store only serializable data: name + bytes

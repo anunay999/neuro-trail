@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 # API URL
 API_URL = os.getenv("API_URL", "http://localhost:8000/api")
+BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
 
 # Set page config
 st.set_page_config(
@@ -106,9 +107,10 @@ def upload_file(file, endpoint: str) -> Dict[str, Any]:
 def check_api_connection() -> bool:
     """Check if API is available"""
     try:
-        response = requests.get(f"{API_URL}/health")
+        response = requests.get(f"{BASE_URL}/health")
+        logger.info(f"API Response: {response}")
         return response.status_code == 200
-    except:
+    except Exception:
         return False
 
 
@@ -198,7 +200,7 @@ def render_chat():
         if st.button("Clear Chat", use_container_width=True):
             st.session_state.chat_history = []
             st.session_state.current_conversation_id = None
-            st.experimental_rerun()
+            st.rerun()
     
     # Get selected conversation ID
     if selected_conversation != "New Conversation":
@@ -543,7 +545,7 @@ def render_personalization():
                 response = api_put("/preferences/goals", updated_goals)
                 if response:
                     st.success("Goal added successfully!")
-                    st.experimental_rerun()
+                    st.rerun()
     
     with tabs[2]:  # Templates
         st.header("Prompt Templates")
@@ -590,7 +592,7 @@ def render_personalization():
                                     if st.session_state.user_preferences:
                                         st.session_state.user_preferences["active_template_id"] = template.get("id")
                                     st.success(f"Template '{template.get('name')}' set as active")
-                                    st.experimental_rerun()
+                                    st.rerun()
                         else:
                             st.markdown("✓ Active")
                     
@@ -621,7 +623,7 @@ def render_personalization():
                                         if st.session_state.user_preferences:
                                             st.session_state.user_preferences["active_template_id"] = template.get("id")
                                         st.success(f"Template '{template.get('name')}' set as active")
-                                        st.experimental_rerun()
+                                        st.rerun()
                             else:
                                 st.markdown("✓ Active")
                         
@@ -632,7 +634,7 @@ def render_personalization():
                                     # Update templates
                                     st.session_state.templates = [t for t in st.session_state.templates if t.get("id") != template.get("id")]
                                     st.success(f"Template '{template.get('name')}' deleted")
-                                    st.experimental_rerun()
+                                    st.rerun()
                         
                         # Show template content
                         with st.expander("Template Content"):
@@ -669,7 +671,7 @@ def render_personalization():
                     # Update templates
                     st.session_state.templates.append(response)
                     st.success(f"Template '{template_name}' created successfully!")
-                    st.experimental_rerun()
+                    st.rerun()
 
 
 # Configuration interface

@@ -7,6 +7,10 @@ import uuid
 from app.db.session import get_db
 from app.services.document_service import DocumentService
 from app.schemas.document import DocumentResponse
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 router = APIRouter()
 
@@ -35,7 +39,7 @@ async def upload_document(
     # Create document record
     document_service = DocumentService(db)
     document_id = str(uuid.uuid4())
-    document = document_service.create_document(
+    document_service.create_document(
         document_id=document_id,
         filename=filename,
         file_type=extension
@@ -63,6 +67,7 @@ async def list_documents(
     """List all processed documents"""
     document_service = DocumentService(db)
     documents = document_service.get_documents()
+
     return documents
 
 @router.get("/{document_id}", response_model=DocumentResponse)

@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1 import documents, chat, user_preferences, config, templates, health
+from app.api.v1 import documents, chat, user_preferences, config, templates
 
 api_router = APIRouter()
 
@@ -9,4 +9,3 @@ api_router.include_router(chat.router, prefix="/chat", tags=["chat"])
 api_router.include_router(user_preferences.router, prefix="/preferences", tags=["preferences"])
 api_router.include_router(config.router, prefix="/config", tags=["configuration"])
 api_router.include_router(templates.router, prefix="/templates", tags=["templates"])
-api_router.include_router(health.router, prefix="/health", tags=["health"])

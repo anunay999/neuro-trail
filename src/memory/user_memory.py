@@ -98,7 +98,7 @@ class UserMemory:
             f"Chat interaction stored. Response from memory client: {response}")
         return response
 
-    def get_chat_history(self, user_id: str, limit: int = 5) -> List[Dict]:
+    def get_user_profile(self, user_id: str, limit: int = 5) -> List[Dict]:
         """
         Retrieve relevant chat history based on a query.
 
@@ -113,11 +113,11 @@ class UserMemory:
 
         # Search with a narrowed query that focuses on chat interactions
         search_results = self.memory_client.search(
-            "interaction_type:chat",
+            "user profile interaction_type:chat",
             user_id=user_id,
             limit=limit
         )
-        logger.debug(
+        logger.info(
             f"Search results for relevant chat history: {search_results}")
 
         if search_results and search_results.get('results'):

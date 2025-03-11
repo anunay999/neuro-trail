@@ -28,7 +28,7 @@ class MemoryAugmentedChat:
         self.user_memory = UserMemory(self.memory_client)
         logger.info("MemoryAugmentedChat initialized successfully")
 
-    def answer_query(self, query: str, user_id: str = None) -> Generator[str, None, None]:
+    def answer_query(self, query: str, user_id: str = None, chat_history: List[str] = []) -> Generator[str, None, None]:
         """
         Process user query and generate a response with memory-augmented context.
 
@@ -52,15 +52,11 @@ class MemoryAugmentedChat:
         logger.info(
             f"Current personalization settings: Length={length}, Expertise={expertise}")
 
-        # Retrieve relevant chat history
-        relevant_history = self.user_memory.get_chat_history(
-            user_id)
-        logger.info(
-            f"Retrieved {len(relevant_history)} relevant chat history entries")
-
         # Create context from relevant history and preferences
+        user_profile = self.user_memory.get_user_profile(user_id)
+
         context = self._build_context_from_memory(
-            relevant_history)
+            st.session_state["chat_history"], user_profile)
         logger.debug(f"Built context from memory: {context}")
 
         # Format the query with personalization and context
@@ -91,29 +87,29 @@ class MemoryAugmentedChat:
         logger.info(f"Finished answering query: '{query}'")
 
     def _build_context_from_memory(self,
-                                   relevant_history: List[Dict]) -> str:
+                                   chat_history: List[Dict], user_profile) -> str:
         """Build context string from memory components."""
         logger.info("Building context from memory...")
         context_parts = []
 
         # Add relevant history
-        if relevant_history:
-            context_parts.append("Relevant prior conversations:")
+        if chat_history:
+            context_parts.append("Chat History:")
             # Limit to 3 most relevant
-            for i, history in enumerate(relevant_history[:3]):
-                memory_content = history.get('memory', '')
-                logger.debug(
-                    f"Processing history entry {i+1}: {memory_content}")
-                if isinstance(memory_content, list):
+            history = chat_history[0]
+            for i, history in enumerate(chat_history):
+                logger.info(
+                    f"Processing history entry {i+1}: {history}")
+
+                if isinstance(history, dict):
                     # Format message list
-                    conversation = "\n".join([f"{msg.get('role', '')}: {msg.get('content', '')}"
-                                             for msg in memory_content if isinstance(msg, dict)])
+                    conversation = "\n".join(
+                        [f"{history.get('role', '')}: {history.get('content', '')}"])
+                    logger.info(conversation)
                     context_parts.append(f"{i+1}. {conversation}")
-                else:
-                    context_parts.append(f"{i+1}. {memory_content}")
 
         context = "\n".join(context_parts)
-        logger.info(f"Context built: {context}")
+        logger.info(f"Context on previous conversation: {context}")
         return context
 
     def _format_query_with_context(self,

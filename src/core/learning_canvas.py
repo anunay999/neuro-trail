@@ -5,7 +5,7 @@ import tempfile
 
 import streamlit as st
 
-from core.settings import settings
+from core.settings_config import settings
 from epub_extract import extract_epub
 from llm import get_llm
 from rag.vector_store_service import VectorStoreService

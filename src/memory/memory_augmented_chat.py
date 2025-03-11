@@ -1,10 +1,7 @@
 import logging
-from datetime import datetime
 from typing import Dict, Generator, List
 
 import streamlit as st
-from .memory_client import create_memory_client_from_settings
-from .user_memory import UserMemory
 from llm import get_llm
 from core.learning_canvas import canvas
 
@@ -24,8 +21,6 @@ class MemoryAugmentedChat:
     def __init__(self):
         """Initialize with application settings."""
         logger.info("Initializing MemoryAugmentedChat")
-        self.memory_client = create_memory_client_from_settings()
-        self.user_memory = UserMemory(self.memory_client)
         logger.info("MemoryAugmentedChat initialized successfully")
 
     def answer_query(self, query: str, user_id: str = None, chat_history: List[str] = []) -> Generator[str, None, None]:
@@ -53,10 +48,10 @@ class MemoryAugmentedChat:
             f"Current personalization settings: Length={length}, Expertise={expertise}")
 
         # Create context from relevant history and preferences
-        user_profile = self.user_memory.get_user_profile(user_id)
+        # user_profile = self.user_memory.get_user_profile(user_id)
 
         context = self._build_context_from_memory(
-            st.session_state["chat_history"], user_profile)
+            st.session_state["chat_history"])
         logger.debug(f"Built context from memory: {context}")
 
         # Format the query with personalization and context
@@ -87,7 +82,7 @@ class MemoryAugmentedChat:
         logger.info(f"Finished answering query: '{query}'")
 
     def _build_context_from_memory(self,
-                                   chat_history: List[Dict], user_profile) -> str:
+                                   chat_history: List[Dict]) -> str:
         """Build context string from memory components."""
         logger.info("Building context from memory...")
         context_parts = []
@@ -135,21 +130,21 @@ class MemoryAugmentedChat:
         logger.info(f"Formatted prompt: {formatted_prompt}")
         return formatted_prompt
 
-    def _store_interaction(self, messages: List[Dict[str, str]], user_id: str, query: str):
-        """Store the interaction in memory."""
-        logger.info(f"Storing interaction for user {user_id}: {messages}")
-        try:
-            metadata = {
-                'timestamp': datetime.now().isoformat(),
-                'query_intent': self._categorize_query(query)
-            }
-            logger.debug(f"Interaction metadata: {metadata}")
+    # def _store_interaction(self, messages: List[Dict[str, str]], user_id: str, query: str):
+    #     """Store the interaction in memory."""
+    #     logger.info(f"Storing interaction for user {user_id}: {messages}")
+    #     try:
+    #         metadata = {
+    #             'timestamp': datetime.now().isoformat(),
+    #             'query_intent': self._categorize_query(query)
+    #         }
+    #         logger.debug(f"Interaction metadata: {metadata}")
 
-            self.user_memory.store_chat_interaction(
-                messages, user_id, metadata)
-            logger.info(f"Stored chat interaction for user {user_id}")
-        except Exception as e:
-            logger.error(f"Error storing chat interaction: {str(e)}")
+    #         self.user_memory.store_chat_interaction(
+    #             messages, user_id, metadata)
+    #         logger.info(f"Stored chat interaction for user {user_id}")
+    #     except Exception as e:
+    #         logger.error(f"Error storing chat interaction: {str(e)}")
 
     def _categorize_query(self, query: str) -> str:
         prompt = f"""Categorize Query: {query}

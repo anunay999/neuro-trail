@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional, Union
 
 from mem0 import Memory
 from pydantic import BaseModel, Field
-from core.settings import settings
+from core.settings_config import settings
 import logging
 
 # Configure logging

@@ -2,7 +2,6 @@ import logging
 
 import streamlit as st
 import time
-from core.learning_canvas import canvas
 from memory import initialize_memory_system
 
 # Configure logging
@@ -57,7 +56,7 @@ def handle_user_input(memory_system, user_id):
             {"role": "user", "content": user_input})
         with st.chat_message("user"):
             st.markdown(user_input)
-
+    with st.spinner("Generating...", show_time=True):
         # Generate and display response
         generate_response(memory_system, user_input, user_id)
 
@@ -78,6 +77,8 @@ def generate_response(memory_system, user_input, user_id):
         st.session_state["chat_history"].append(
             {"role": "assistant", "content": full_response}
         )
+    st.subheader("Memory Augmented Learning")
+    st.subheader("Memory Augmented Learning")
 
 
 def create_sidebar_controls(memory_system, user_id):

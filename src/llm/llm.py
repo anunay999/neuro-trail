@@ -1,6 +1,6 @@
 from litellm import completion
 
-from core import settings
+from core.settings_config import settings
 import logging
 import streamlit as st
 
@@ -57,7 +57,7 @@ def get_llm(streaming=True) -> callable:
         except Exception as e:
             yield f"Error: {str(e)}"
 
-    def query_llm_without_streaming(messages, temperature=0)-> str:
+    def query_llm_without_streaming(messages, temperature=0) -> str:
         """
         Calls the LiteLLM API with the specified model and messages.
         Automatically configures API base for Ollama.

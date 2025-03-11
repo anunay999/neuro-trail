@@ -8,7 +8,8 @@ NeuroTrail is an AI-powered learning system designed to enhance personalized lea
 - **Personalized Knowledge Trails**: Users can define learning paths based on interests.
 - **Persistent Memory Module**: Tracks learned content and provides recommendations.
 - **Deep Knowledge Graph Integration**: Ensures semantic linking and retrieval.
-- **Configure Prompt Templates**: Ensures personalized responses
+- **LLM Personalisation Settings**: Ensures personalized responses
+- **User Memory**: Long context user memory
 
 ## Demo
 Try demo at [https://neuro-trail.streamlit.app](https://neuro-trail.streamlit.app)

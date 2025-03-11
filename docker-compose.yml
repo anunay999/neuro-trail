@@ -1,32 +1,14 @@
 services:
-  neo4j:
-    image: neo4j:latest # Or a specific version, e.g., neo4j:4.4
-    network_mode: "host"
-    ports:
-      - "7474:7474" # HTTP
-      - "7687:7687" # Bolt
-    environment:
-      NEO4J_AUTH: neo4j/password
-    volumes:
-      - neo4j_data:/data # Persist Neo4j data
-
   neuro-trail:
     build: . # Build from the Dockerfile in the current directory
     network_mode: "host"
-    depends_on:
-      - neo4j
     ports:
       - "8503:8503"
     env_file: .env
-    environment:
-      - NEO4J_URI=${NEO4J_URI}
-      - NEO4J_USER=${NEO4J_USER}
-      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
     volumes:
       - ./.env:/app/.env
-
-volumes:
-  neo4j_data: # Named volume for Neo4j data persistence
+      - ./src:/app/src
+      - ./.data:/app/src/.data
 
 networks:
   host:

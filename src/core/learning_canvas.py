@@ -7,7 +7,6 @@ import streamlit as st
 
 from core.settings import settings
 from epub_extract import extract_epub
-from knowledge_graph import KnowledgeGraph
 from llm import get_llm
 from rag.vector_store_service import VectorStoreService
 
@@ -24,7 +23,6 @@ class LearningCanvas:
         Initializes the LearningCanvas components.
         """
         logger.info("Initializing LearningCanvas")
-        self.kg = KnowledgeGraph()
         self.vector_store_service = None  # Initialized later after model is set
 
         # Set configured temperature from settings
@@ -36,7 +34,8 @@ class LearningCanvas:
     def __initialize_canvas(self):
         # Initialize the Vector Store Service with the selected embedding model
         self.vector_store_service = VectorStoreService(chapter_mode=True)
-        logger.info("Vector Store Service initialized with configured settings.")
+        logger.info(
+            "Vector Store Service initialized with configured settings.")
 
     def add_epub(self, epub_file, user_id="user_123") -> bool:
         """
@@ -68,17 +67,14 @@ class LearningCanvas:
             logger.debug(f"Created temporary file: {temp_file_path}")
 
         try:
-            metadata, full_text, chapters = extract_epub(temp_file_path)
+            epub_data = extract_epub(temp_file_path)
+            metadata = epub_data["metadata"]
+            full_text = epub_data["full_text"]
+            chapters = epub_data["chapters"]
+
             logger.info(
                 f"Loaded '{metadata['title']}' by {metadata['author']}. Chapters found: {len(chapters)}"
             )
-
-            self.kg.add_book(metadata["title"], metadata["author"])
-            if chapters:
-                self.kg.add_chapters(metadata["title"], chapters)
-                logger.info(f"Added {len(chapters)} chapters to knowledge graph.")
-            else:
-                logger.warning("No chapters found in EPUB.")
 
             paragraphs = [
                 p.strip() for p in full_text.split("\n\n") if len(p.strip()) > 50
@@ -91,7 +87,8 @@ class LearningCanvas:
 
         except Exception as e:
             logger.exception(f"Error processing EPUB file: {e}")
-            st.toast(f"An error occurred while processing the EPUB: {e}", icon="⚠️")
+            st.toast(
+                f"An error occurred while processing the EPUB: {e}", icon="⚠️")
             raise Exception(f"Error processing EPUB file: {e}")
 
         finally:
@@ -124,9 +121,11 @@ class LearningCanvas:
             results = self.vector_store_service.search(query, top_k=top_k)
             for i, res in enumerate(results):
                 chapter_info = (
-                    f"(Chapter: {res['chapter']})" if res.get("chapter") else ""
+                    f"(Chapter: {res['chapter']})" if res.get(
+                        "chapter") else ""
                 )
-                logger.info(f"Result {i + 1} {chapter_info}:\n{res['text'][:200]}...\n")
+                logger.info(
+                    f"Result {i + 1} {chapter_info}:\n{res['text'][:200]}...\n")
         except Exception as e:
             logger.exception(f"Error during search query: {e}")
             st.toast(f"An error occurred while searching: {e}", icon="⚠️")
@@ -144,7 +143,8 @@ class LearningCanvas:
             context_chunks = self.search_query(query, top_k=5)
         except Exception as e:  # Catch potential errors in search_query
             logger.exception(f"Error during search in answer_query: {e}")
-            st.toast(f"An error occurred while searching for context: {e}", icon="⚠️")
+            st.toast(
+                f"An error occurred while searching for context: {e}", icon="⚠️")
             yield f"Error retrieving context: {str(e)}"
             return
 
@@ -152,7 +152,8 @@ class LearningCanvas:
             logger.info("No relevant context found. Using default prompt.")
             prompt = f"Answer the following question:\n{query}"
         else:
-            context_text = "\n".join([chunk["text"] for chunk in context_chunks])
+            context_text = "\n".join([chunk["text"]
+                                     for chunk in context_chunks])
             logger.info(f"Context found. Length: {len(context_text)}")
             prompt = f"Using the following context:\n{context_text}\n\nAnswer the following question:\n{query}"
 
@@ -166,19 +167,9 @@ class LearningCanvas:
             logger.info("Received response from LLM.")
         except Exception as e:
             logger.exception(f"Error during LLM call: {e}")
-            st.toast(f"An error occurred while getting the LLM response: {e}", icon="⚠️")
+            st.toast(
+                f"An error occurred while getting the LLM response: {e}", icon="⚠️")
             yield f"Error: LLM call failed: {str(e)}"
-
-    def close(self):
-        """Closes connections to any resources."""
-        logger.info("Closing LearningCanvas resources.")
-        try:
-            self.kg.close()
-            logger.info("Knowledge graph connection closed.")
-        except Exception as e:
-            logger.exception(f"Error closing KnowledgeGraph connection: {e}")
-            # added error handling
-            st.toast(f"Error closing knowledge graph connection: {e}", icon="⚠️")
 
 
 canvas = LearningCanvas()

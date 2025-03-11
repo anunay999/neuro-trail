@@ -1,4 +1,3 @@
-from email.mime import base
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
@@ -162,11 +161,9 @@ class CommonMemoryClient(AbstractMemoryClient):
         """Search for relevant memories."""
         return self.memory.search(query, user_id=user_id, limit=limit)
 
-    def update(self, memory_id: str, data: Union[str, List[Dict[str, str]]], metadata: Optional[Dict[str, Any]] = None) -> Dict:
+    def update(self, memory_id: str, data: Union[str, List[Dict[str, str]]]) -> Dict:
         """Update a memory."""
         update_params = {"data": data}
-        if metadata:
-            update_params["metadata"] = metadata
         return self.memory.update(memory_id=memory_id, **update_params)
 
     def delete(self, memory_id: str) -> Dict:
@@ -226,21 +223,10 @@ def create_memory_client_from_settings() -> CommonMemoryClient:
         api_key=settings.llm_api_key if settings.llm_api_key else None
     )
 
-    # If Neo4j is configured, add graph store
-    graph_store_config = None
-    if settings.neo4j_uri:
-        graph_store_config = GraphStoreConfig(
-            provider="neo4j",
-            url=settings.neo4j_uri,
-            username=settings.neo4j_user,
-            password=settings.neo4j_password
-        )
-
     memory_config = MemoryConfig(
         vector_store=vector_store_config,
         llm=llm_config,
         embedder=embedder_config,
-        graph_store=graph_store_config
     )
 
     return CommonMemoryClient(memory_config)

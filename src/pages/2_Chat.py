@@ -2,7 +2,7 @@ import logging
 
 import streamlit as st
 import time
-
+from core.learning_canvas import canvas
 from memory import initialize_memory_system
 
 # Configure logging
@@ -70,6 +70,7 @@ def generate_response(memory_system, user_input, user_id):
     full_response = ""
     with st.spinner("Generating...", show_time=True):
         for token in memory_system.answer_query(user_input, user_id=user_id):
+            # for token in canvas.answer_query(user_input, user_id=user_id):
             full_response += token
             assistant_placeholder.markdown(full_response)
 
@@ -86,60 +87,7 @@ def create_sidebar_controls(memory_system, user_id):
         if st.button("Clear Chat", use_container_width=True):
             st.session_state["chat_history"] = []
             st.rerun()
-
         # Learning goals section
-        display_learning_goals_section(memory_system, user_id)
-
-
-def display_learning_goals_section(memory_system, user_id):
-    """Display and manage learning goals in the sidebar."""
-    st.subheader("Learning Goals")
-
-    # View goals button
-    if st.button("View My Goals", use_container_width=True):
-        display_goals(memory_system, user_id)
-
-    # Create new goal section
-    with st.expander("Create New Learning Goal"):
-        create_new_goal(memory_system, user_id)
-
-
-def display_goals(memory_system, user_id):
-    """Display existing goals for the user."""
-    goals = memory_system.user_memory.get_all_goals(user_id)
-    if goals:
-        for goal in goals:
-            with st.expander(f"📚 {goal.goal_description} ({goal.completion_percentage:.0f}%)"):
-                st.progress(goal.completion_percentage / 100.0)
-                st.write(f"Status: {goal.status}")
-                st.write("Milestones:")
-                for m in goal.milestones:
-                    milestone_status = "✅ " if m.get("completed") else "⬜ "
-                    st.markdown(f"{milestone_status}{m.get('description')}")
-    else:
-        st.info("No learning goals set yet.")
-
-
-def create_new_goal(memory_system, user_id):
-    """Create a new learning goal with milestones."""
-    goal_description = st.text_input("Goal Description")
-
-    # Milestone inputs
-    milestone1 = st.text_input("Milestone 1")
-    milestone2 = st.text_input("Milestone 2", value="")
-    milestone3 = st.text_input("Milestone 3", value="")
-
-    # Filter empty milestones
-    milestones = [m for m in [milestone1, milestone2, milestone3] if m]
-
-    # Create goal button
-    if st.button("Create Goal", use_container_width=True) and goal_description:
-        memory_system.track_learning_goal(
-            user_id=user_id,
-            goal_description=goal_description,
-            milestones=milestones
-        )
-        st.success("Learning goal created! Keep track of your progress here.")
 
 
 def memory_augmented_chat_ui():

@@ -1,35 +1,14 @@
 services:
-  neo4j:
-    image: neo4j:latest
-    network_mode: "host"
-    ports:
-      - "7474:7474"
-      - "7687:7687"
-    environment:
-      NEO4J_AUTH: neo4j/password
-      NEO4J_PLUGINS: '["apoc"]'
-      NEO4J_dbms_security_procedures_unrestricted: apoc.*
-    volumes:
-      - neo4j_data:/data
-
   neuro-trail:
     build: . # Build from the Dockerfile in the current directory
     network_mode: "host"
-    depends_on:
-      - neo4j
     ports:
       - "8503:8503"
     env_file: .env
-    environment:
-      - NEO4J_URI=${NEO4J_URI}
-      - NEO4J_USER=${NEO4J_USER}
-      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
     volumes:
       - ./.env:/app/.env
       - ./src:/app/src
-
-volumes:
-  neo4j_data: # Named volume for Neo4j data persistence
+      - ./.data:/app/src/.data
 
 networks:
   host:

@@ -2,9 +2,9 @@ import logging
 from typing import Dict, Generator, List
 
 import streamlit as st
-from llm import get_llm
-from core.learning_canvas import canvas
 
+from core.learning_canvas import canvas
+from llm import get_llm
 
 # Configure logging
 logging.basicConfig(
@@ -23,7 +23,9 @@ class MemoryAugmentedChat:
         logger.info("Initializing MemoryAugmentedChat")
         logger.info("MemoryAugmentedChat initialized successfully")
 
-    def answer_query(self, query: str, user_id: str = None, chat_history: List[str] = []) -> Generator[str, None, None]:
+    def answer_query(
+        self, query: str, user_id: str = None, chat_history: List[str] = []
+    ) -> Generator[str, None, None]:
         """
         Process user query and generate a response with memory-augmented context.
 
@@ -45,27 +47,26 @@ class MemoryAugmentedChat:
         length = st.session_state.get("response_length", "Balanced")
         expertise = st.session_state.get("expertise_level", "Intermediate")
         logger.info(
-            f"Current personalization settings: Length={length}, Expertise={expertise}")
+            f"Current personalization settings: Length={length}, Expertise={expertise}"
+        )
 
         # Create context from relevant history and preferences
         # user_profile = self.user_memory.get_user_profile(user_id)
 
-        context = self._build_context_from_memory(
-            st.session_state["chat_history"])
+        context = self._build_context_from_memory(st.session_state["chat_history"])
         logger.debug(f"Built context from memory: {context}")
 
         # Format the query with personalization and context
         personalized_query = self._format_query_with_context(
-            query, context, length, expertise)
+            query, context, length, expertise
+        )
         logger.info(f"Formatted query with context: {personalized_query}")
 
         # Get response tokens from the canvas
         response_tokens = canvas.answer_query(personalized_query)
 
         # Store the interaction in memory
-        messages = [
-            {"role": "user", "content": query}
-        ]
+        messages = [{"role": "user", "content": query}]
 
         accumulated_response = ""
         for token in response_tokens:
@@ -75,14 +76,13 @@ class MemoryAugmentedChat:
         # Add the full response to messages
         messages.append({"role": "assistant", "content": accumulated_response})
 
-        # Store the interaction asynchronously (in a real app, you'd use async)
-        self._store_interaction(messages, user_id, query)
+        # # Store the interaction asynchronously (in a real app, you'd use async)
+        # self._store_interaction(messages, user_id, query)
 
         # Analyze the interaction for preference inference (could be done periodically instead)
         logger.info(f"Finished answering query: '{query}'")
 
-    def _build_context_from_memory(self,
-                                   chat_history: List[Dict]) -> str:
+    def _build_context_from_memory(self, chat_history: List[Dict]) -> str:
         """Build context string from memory components."""
         logger.info("Building context from memory...")
         context_parts = []
@@ -93,39 +93,39 @@ class MemoryAugmentedChat:
             # Limit to 3 most relevant
             history = chat_history[0]
             for i, history in enumerate(chat_history):
-                logger.info(
-                    f"Processing history entry {i+1}: {history}")
+                logger.info(f"Processing history entry {i + 1}: {history}")
 
                 if isinstance(history, dict):
                     # Format message list
                     conversation = "\n".join(
-                        [f"{history.get('role', '')}: {history.get('content', '')}"])
+                        [f"{history.get('role', '')}: {history.get('content', '')}"]
+                    )
                     logger.info(conversation)
-                    context_parts.append(f"{i+1}. {conversation}")
+                    context_parts.append(f"{i + 1}. {conversation}")
 
         context = "\n".join(context_parts)
         logger.info(f"Context on previous conversation: {context}")
         return context
 
-    def _format_query_with_context(self,
-                                   query: str,
-                                   context: str,
-                                   length: str = "balanced",
-                                   expertise: str = "intermediate") -> str:
+    def _format_query_with_context(
+        self,
+        query: str,
+        context: str,
+        length: str = "balanced",
+        expertise: str = "intermediate",
+    ) -> str:
         """Format the query with context and personalization."""
         logger.info("Formatting query with context and preferences...")
         from core.prompt_templates import prompt_template_manager
 
-        logger.debug(
-            f"Using length: {length}, expertise: {expertise} for formatting")
+        logger.debug(f"Using length: {length}, expertise: {expertise} for formatting")
 
         # Use your existing template manager
         context = f"""
                     {context}\nPreferred Response Length: {length}\nPreferred Expertise Level:{expertise}
                 """
         formatted_prompt = prompt_template_manager.format_prompt(
-            context=context,
-            question=query
+            context=context, question=query
         )
         logger.info(f"Formatted prompt: {formatted_prompt}")
         return formatted_prompt
@@ -167,12 +167,13 @@ def initialize_memory_system():
         # Generate a session ID if not present
         if "session_id" not in st.session_state:
             import uuid
+
             st.session_state.session_id = str(uuid.uuid4())
-            logger.info(
-                f"Generated new session ID: {st.session_state.session_id}")
+            logger.info(f"Generated new session ID: {st.session_state.session_id}")
 
         # Set default user (in a real app, this would come from authentication)
         st.session_state.user_id = st.session_state.session_id
 
         logger.info(
-            f"Memory system initialized with session ID: {st.session_state.session_id}")
+            f"Memory system initialized with session ID: {st.session_state.session_id}"
+        )

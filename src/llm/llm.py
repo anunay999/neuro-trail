@@ -6,7 +6,7 @@ import streamlit as st
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=logging.INFO, format="%(asctime)s-%(name)s-%(levelname)s-%(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -17,8 +17,16 @@ def get_llm(streaming=True) -> callable:
     Uses LiteLLM's `completion()` method for interaction.
     """
 
-    model = st.session_state.llm_model if "llm_model" in st.session_state else settings.llm_model
-    model_provider = st.session_state.llm_provider if "llm_provider" in st.session_state else settings.llm_provider
+    model = (
+        st.session_state.llm_model
+        if "llm_model" in st.session_state
+        else settings.llm_model
+    )
+    model_provider = (
+        st.session_state.llm_provider
+        if "llm_provider" in st.session_state
+        else settings.llm_provider
+    )
     # Find the correct Model Enum
     if not model:
         raise ValueError(f"Model {model} is not recognized.")
@@ -26,14 +34,30 @@ def get_llm(streaming=True) -> callable:
     # Fetch the correct API key or host URL dynamically
     if model_provider == "ollama":
         # Default to local Ollama server
-        api_base = st.session_state.llm_base_url if "llm_base_url" in st.session_state else settings.llm_base_url
+        api_base = (
+            st.session_state.llm_base_url
+            if "llm_base_url" in st.session_state
+            else settings.llm_base_url
+        )
         api_key = None  # Ollama doesn't use an API key
     else:
-        api_key = st.session_state.llm_api_key if "llm_api_key" in st.session_state else settings.llm_api_key
+        api_key = (
+            st.session_state.llm_api_key
+            if "llm_api_key" in st.session_state
+            else settings.llm_api_key
+        )
         api_base = None  # API Base is only needed for Ollama
 
-    temp = st.session_state.llm_temperature if "llm_temperature" in st.session_state else settings.llm_temperature
-    max_tokens = st.session_state.llm_max_tokens if "llm_max_tokens" in st.session_state else settings.llm_max_tokens
+    temp = (
+        st.session_state.llm_temperature
+        if "llm_temperature" in st.session_state
+        else settings.llm_temperature
+    )
+    max_tokens = (
+        st.session_state.llm_max_tokens
+        if "llm_max_tokens" in st.session_state
+        else settings.llm_max_tokens
+    )
 
     def query_llm(messages, temperature=0):
         """

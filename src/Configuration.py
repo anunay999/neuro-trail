@@ -7,7 +7,7 @@ from core.learning_canvas import canvas
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=logging.INFO, format="%(asctime)s-%(name)s-%(levelname)s-%(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -37,8 +37,7 @@ def process_uploaded_files():
         file_name = file_info["name"]
         file_extension = file_name.split(".")[-1].lower()
 
-        logger.info(
-            f"Processing file: {file_name}, extension: {file_extension}")
+        logger.info(f"Processing file: {file_name}, extension: {file_extension}")
 
         if file_extension == "epub":
             st.info(f"Processing EPUB: {file_name}", icon="📖")
@@ -54,8 +53,7 @@ def process_uploaded_files():
 
         elif file_extension in ["docx", "pdf"]:
             logger.info(f"Skipping {file_name} (Handler not implemented yet)")
-            st.info(
-                f"Skipping {file_name} (Handler not implemented yet)", icon="📄")
+            st.info(f"Skipping {file_name} (Handler not implemented yet)", icon="📄")
             st.session_state["processing_status"] = True
         else:
             logger.warning(f"Unsupported file type: {file_extension}")
@@ -86,11 +84,22 @@ def render_advanced_configuration(config_manager: ConfigManager):
         with col1:
             st.session_state.llm_provider = st.selectbox(
                 "LLM Provider",
-                options=["ollama", "openai", "google",
-                         "mistral", "huggingface", "gemini"],
-                index=["ollama", "openai", "google", "mistral", "huggingface", "gemini"].index(
-                    st.session_state.llm_provider
-                ),
+                options=[
+                    "ollama",
+                    "openai",
+                    "google",
+                    "mistral",
+                    "huggingface",
+                    "gemini",
+                ],
+                index=[
+                    "ollama",
+                    "openai",
+                    "google",
+                    "mistral",
+                    "huggingface",
+                    "gemini",
+                ].index(st.session_state.llm_provider),
                 help="Provider for the language model",
             )
 
@@ -109,7 +118,7 @@ def render_advanced_configuration(config_manager: ConfigManager):
                 "google",
                 "mistral",
                 "huggingface",
-                "gemini"
+                "gemini",
             ]:
                 st.session_state.llm_api_key = st.text_input(
                     f"{st.session_state.llm_provider.capitalize()} API Key",
@@ -284,8 +293,7 @@ def render_advanced_configuration(config_manager: ConfigManager):
                 # Read the file bytes immediately
                 file_data = uf.read()
                 # Check if we already have a file with the same name
-                existing_names = [f["name"]
-                                  for f in st.session_state["uploaded_files"]]
+                existing_names = [f["name"] for f in st.session_state["uploaded_files"]]
 
                 if uf.name not in existing_names:
                     # Store only serializable data: name + bytes

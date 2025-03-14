@@ -8,7 +8,7 @@ from rag.vector_store_factory import VectorStoreFactory
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=logging.INFO, format="%(asctime)s-%(name)s-%(levelname)s-%(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -172,8 +172,7 @@ class VectorStoreService:
             return results
 
         except Exception as e:
-            logger.exception(
-                f"Error retrieving documents from vector store: {e}")
+            logger.exception(f"Error retrieving documents from vector store: {e}")
             st.toast(f"Failed to retrieve documents: {e}")
             return {"ids": [], "documents": [], "metadatas": []}
 

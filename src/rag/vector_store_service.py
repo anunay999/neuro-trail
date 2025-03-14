@@ -2,6 +2,7 @@ import logging
 from typing import Any, Dict, List, Optional
 
 import streamlit as st
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from rag.embedding_service import EmbeddingService
 from rag.vector_store_factory import VectorStoreFactory
@@ -33,6 +34,12 @@ class VectorStoreService:
 
         # Create embedding service
         self.embedding_service = EmbeddingService()
+        self.text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=1536,  # 512*3
+            chunk_overlap=50,
+            length_function=len,
+            is_separator_regex=False,
+        )
 
         # Create vector store
         self.vector_store = VectorStoreFactory.create_vector_store(**kwargs)
@@ -64,30 +71,34 @@ class VectorStoreService:
             logger.warning("No texts provided to add to vector store.")
             return []
 
+        split_texts = []
+        for text in texts:
+            split_texts.extend(self.text_splitter.split_text(text))
+
         # Handle chapter mode
         if self.chapter_mode and chapter is not None:
             if metadata is None:
-                metadata = [{"chapter": chapter} for _ in texts]
+                metadata = [{"chapter": chapter} for _ in split_texts]
             else:
                 for data in metadata:
                     data["chapter"] = chapter
 
         elif metadata is None:
-            metadata = [{} for _ in texts]
+            metadata = [{} for _ in split_texts]
 
         try:
             # Generate embeddings
-            embeddings = self.embedding_service.generate(texts)
+            embeddings = self.embedding_service.generate(split_texts)
 
             # Add to vector store
             ids = self.vector_store.add_texts(
-                texts=texts,
+                texts=split_texts,
                 embeddings=embeddings.tolist(),
                 metadatas=metadata,
                 **kwargs,
             )
 
-            logger.info(f"Added {len(texts)} texts to vector store")
+            logger.info(f"Added {len(split_texts)} texts to vector store")
             return ids
 
         except Exception as e:

@@ -119,11 +119,9 @@ class LearningCanvas:
             results = self.vector_store_service.search(query, top_k=top_k)
             for i, res in enumerate(results):
                 chapter_info = (
-                    f"(Chapter: {res['chapter']})" if res.get(
-                        "chapter") else ""
+                    f"(Chapter: {res['chapter']})" if res.get("chapter") else ""
                 )
-                logger.info(
-                    f"Result {i + 1} {chapter_info}:\n{res['text'][:200]}...\n")
+                logger.info(f"Result {i + 1} {chapter_info}:\n{res['text'][:200]}...\n")
         except Exception as e:
             logger.exception(f"Error during search query: {e}")
             st.toast(f"An error occurred while searching: {e}", icon="⚠️")

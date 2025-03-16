@@ -2,6 +2,7 @@ import logging
 from typing import List, Union
 
 import litellm
+import ollama
 import numpy as np
 import streamlit as st
 from tenacity import retry, stop_after_attempt, wait_exponential
@@ -39,6 +40,8 @@ class EmbeddingService:
             # Get API key from model or settings
             self.api_key = settings.embedder_model_api_key
 
+        self.ollama_client = ollama.Client(host=self.api_base)
+
         logger.info(
             f"Initialized EmbeddingService with model {self.embedding_model_val}"
         )
@@ -69,14 +72,26 @@ class EmbeddingService:
         )
 
         try:
-            response = litellm.embedding(
-                input=texts,
-                model=self.embedding_model_val,
-                api_key=self.api_key if self.api_key else None,
-                api_base=self.api_base if self.provider == "ollama" else None,
-            )
+            embeddings = []
+            batch_size = 250  # TODO: make this configurable via config.
 
-            embeddings = [item["embedding"] for item in response["data"]]
+            for i in range(0, len(texts), batch_size):
+                batch = texts[i : i + batch_size]
+                if self.provider == "ollama":
+                    response = self.ollama_client.embed(
+                        model=self.embedding_model,
+                        input=batch,
+                    )
+                    embeddings.extend(response.embeddings)
+                else:
+                    response = litellm.embedding(
+                        input=batch,
+                        model=self.embedding_model_val,
+                        api_key=self.api_key if self.api_key else None,
+                        api_base=self.api_base if self.provider == "ollama" else None,
+                    )
+                    embeddings.extend([item["embedding"] for item in response["data"]])
+
             embeddings_np = np.array(embeddings, dtype=np.float32)
 
             return embeddings_np

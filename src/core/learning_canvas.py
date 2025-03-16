@@ -12,7 +12,7 @@ from rag.vector_store_service import VectorStoreService
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=logging.INFO, format="%(asctime)s-%(name)s-%(levelname)s-%(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -34,8 +34,7 @@ class LearningCanvas:
     def __initialize_canvas(self):
         # Initialize the Vector Store Service with the selected embedding model
         self.vector_store_service = VectorStoreService(chapter_mode=True)
-        logger.info(
-            "Vector Store Service initialized with configured settings.")
+        logger.info("Vector Store Service initialized with configured settings.")
 
     def add_epub(self, epub_file, user_id="user_123") -> bool:
         """
@@ -87,8 +86,7 @@ class LearningCanvas:
 
         except Exception as e:
             logger.exception(f"Error processing EPUB file: {e}")
-            st.toast(
-                f"An error occurred while processing the EPUB: {e}", icon="⚠️")
+            st.toast(f"An error occurred while processing the EPUB: {e}", icon="⚠️")
             raise Exception(f"Error processing EPUB file: {e}")
 
         finally:
@@ -143,8 +141,7 @@ class LearningCanvas:
             context_chunks = self.search_query(query, top_k=5)
         except Exception as e:  # Catch potential errors in search_query
             logger.exception(f"Error during search in answer_query: {e}")
-            st.toast(
-                f"An error occurred while searching for context: {e}", icon="⚠️")
+            st.toast(f"An error occurred while searching for context: {e}", icon="⚠️")
             yield f"Error retrieving context: {str(e)}"
             return
 
@@ -152,8 +149,7 @@ class LearningCanvas:
             logger.info("No relevant context found. Using default prompt.")
             prompt = f"Answer the following question:\n{query}"
         else:
-            context_text = "\n".join([chunk["text"]
-                                     for chunk in context_chunks])
+            context_text = "\n".join([chunk["text"] for chunk in context_chunks])
             logger.info(f"Context found. Length: {len(context_text)}")
             prompt = f"Using the following context:\n{context_text}\n\nAnswer the following question:\n{query}"
 
@@ -167,8 +163,7 @@ class LearningCanvas:
             logger.info("Received response from LLM.")
         except Exception as e:
             logger.exception(f"Error during LLM call: {e}")
-            st.toast(
-                f"An error occurred while getting the LLM response: {e}", icon="⚠️")
+            st.toast(f"An error occurred while getting the LLM response: {e}", icon="⚠️")
             yield f"Error: LLM call failed: {str(e)}"
 
 

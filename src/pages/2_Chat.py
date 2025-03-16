@@ -1,12 +1,13 @@
 import logging
+import time
 
 import streamlit as st
-import time
-from memory import initialize_memory_system
+
+from memory import MemoryAugmentedChat, initialize_memory_system
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=logging.INFO, format="%(asctime)s-%(name)s-%(levelname)s-%(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -23,7 +24,9 @@ def initialize_memory_if_needed():
             st.write("Almost there! Applying final touches of genius... ✨")
             time.sleep(1)
             status.update(
-                label="Brain successfully caffeinated! Ready to go! 🚀", state="complete", expanded=False
+                label="Brain successfully caffeinated! Ready to go! 🚀",
+                state="complete",
+                expanded=False,
             )
 
 
@@ -35,7 +38,7 @@ def setup_welcome_message():
     if len(st.session_state["chat_history"]) == 0:
         welcome_message = {
             "role": "assistant",
-            "content": "👋 Welcome to Neuro Trail! I'm your learning assistant. You can ask me questions about the documents you've uploaded, and I'll use my memory-augmented capabilities to provide helpful responses."
+            "content": "👋 Welcome to Neuro Trail! I'm your learning assistant. You can ask me questions about the documents you've uploaded, and I'll use my memory-augmented capabilities to provide helpful responses.",
         }
         st.session_state.chat_history.append(welcome_message)
 
@@ -47,21 +50,22 @@ def display_chat_history():
             st.markdown(message["content"])
 
 
-def handle_user_input(memory_system, user_id):
+def handle_user_input(memory_system: MemoryAugmentedChat, user_id: str):
     """Process user input and generate response."""
     user_input = st.chat_input("Ask me anything...")
     if user_input:
         # Show user message
-        st.session_state["chat_history"].append(
-            {"role": "user", "content": user_input})
+        st.session_state["chat_history"].append({"role": "user", "content": user_input})
         with st.chat_message("user"):
             st.markdown(user_input)
-    with st.spinner("Generating...", show_time=True):
+
         # Generate and display response
         generate_response(memory_system, user_input, user_id)
 
 
-def generate_response(memory_system, user_input, user_id):
+def generate_response(
+    memory_system: MemoryAugmentedChat, user_input: str, user_id: str
+):
     """Generate and display the assistant's response."""
     assistant_message = st.chat_message("assistant")
     assistant_placeholder = assistant_message.empty()
@@ -77,8 +81,6 @@ def generate_response(memory_system, user_input, user_id):
         st.session_state["chat_history"].append(
             {"role": "assistant", "content": full_response}
         )
-    st.subheader("Memory Augmented Learning")
-    st.subheader("Memory Augmented Learning")
 
 
 def create_sidebar_controls(memory_system, user_id):

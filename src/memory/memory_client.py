@@ -9,7 +9,7 @@ import logging
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=logging.INFO, format="%(asctime)s-%(name)s-%(levelname)s-%(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -63,8 +63,14 @@ class AbstractMemoryClient(ABC):
     """
     Abstract base class for memory operations that can be extended for different memory types.
     """
+
     @abstractmethod
-    def add(self, data: Union[str, List[Dict[str, str]]], user_id: str, metadata: Optional[Dict[str, Any]] = None) -> Dict:
+    def add(
+        self,
+        data: Union[str, List[Dict[str, str]]],
+        user_id: str,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> Dict:
         """Add a memory for a user"""
         pass
 
@@ -84,7 +90,12 @@ class AbstractMemoryClient(ABC):
         pass
 
     @abstractmethod
-    def update(self, memory_id: str, data: Union[str, List[Dict[str, str]]], metadata: Optional[Dict[str, Any]] = None) -> Dict:
+    def update(
+        self,
+        memory_id: str,
+        data: Union[str, List[Dict[str, str]]],
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> Dict:
         """Update a memory"""
         pass
 
@@ -113,8 +124,7 @@ class CommonMemoryClient(AbstractMemoryClient):
         """Initialize the memory client with configuration."""
         self.config = config
         self._convert_config_to_mem0_format()
-        logger.info(
-            f"Initializing memory client with config: \n{self.mem0_config}")
+        logger.info(f"Initializing memory client with config: \n{self.mem0_config}")
         self.memory = Memory.from_config(config_dict=self.mem0_config)
 
     def _convert_config_to_mem0_format(self):
@@ -124,28 +134,39 @@ class CommonMemoryClient(AbstractMemoryClient):
         if self.config.vector_store:
             self.mem0_config["vector_store"] = {
                 "provider": self.config.vector_store.provider,
-                "config": self.config.vector_store.dict(exclude={"provider"}, exclude_none=True)
+                "config": self.config.vector_store.dict(
+                    exclude={"provider"}, exclude_none=True
+                ),
             }
 
         if self.config.llm:
             self.mem0_config["llm"] = {
                 "provider": self.config.llm.provider,
-                "config": self.config.llm.dict(exclude={"provider"}, exclude_none=True)
+                "config": self.config.llm.dict(exclude={"provider"}, exclude_none=True),
             }
 
         if self.config.embedder:
             self.mem0_config["embedder"] = {
                 "provider": self.config.embedder.provider,
-                "config": self.config.embedder.dict(exclude={"provider"}, exclude_none=True)
+                "config": self.config.embedder.dict(
+                    exclude={"provider"}, exclude_none=True
+                ),
             }
 
         if self.config.graph_store:
             self.mem0_config["graph_store"] = {
                 "provider": self.config.graph_store.provider,
-                "config": self.config.graph_store.dict(exclude={"provider"}, exclude_none=True)
+                "config": self.config.graph_store.dict(
+                    exclude={"provider"}, exclude_none=True
+                ),
             }
 
-    def add(self, messages: Union[str, List[Dict[str, str]]], user_id: str, metadata: Optional[Dict[str, Any]] = None) -> Dict:
+    def add(
+        self,
+        messages: Union[str, List[Dict[str, str]]],
+        user_id: str,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> Dict:
         """Add a memory for a user."""
         return self.memory.add(messages, user_id=user_id, metadata=metadata or {})
 
@@ -186,21 +207,21 @@ def create_memory_client_from_settings() -> CommonMemoryClient:
         vector_store_config = VectorStoreConfig(
             provider=settings.vector_store_provider,
             collection_name=settings.vector_store_user_collection,
-            port=settings.vector_store_port
+            port=settings.vector_store_port,
         )
     elif settings.vector_store_provider == "pinecone":
         vector_store_config = VectorStoreConfig(
             provider=settings.vector_store_provider,
             collection_name=settings.vector_store_user_collection,
             api_key=settings.vector_store_api_key,
-            environment=settings.vector_store_environment
+            environment=settings.vector_store_environment,
         )
     elif settings.vector_store_provider == "weaviate":
         vector_store_config = VectorStoreConfig(
             provider=settings.vector_store_provider,
             collection_name=settings.vector_store_user_collection,
             url=settings.vector_store_url,
-            auth=settings.vector_store_auth
+            auth=settings.vector_store_auth,
         )
 
     elif settings.vector_store_provider == "qdrant":
@@ -208,19 +229,21 @@ def create_memory_client_from_settings() -> CommonMemoryClient:
             provider=settings.vector_store_provider,
             collection_name=settings.vector_store_user_collection,
             url=settings.vector_store_url,
-            auth=settings.vector_store_auth
+            auth=settings.vector_store_auth,
         )
 
     embedder_config = EmbedderConfig(
         provider=settings.embedder_provider,
         model=settings.embedder_model,
-        api_key=settings.embedder_provider_api_key if settings.embedder_provider_api_key else None
+        api_key=settings.embedder_provider_api_key
+        if settings.embedder_provider_api_key
+        else None,
     )
 
     llm_config = LLMConfig(
         provider=settings.llm_provider,
         model=settings.llm_model,
-        api_key=settings.llm_api_key if settings.llm_api_key else None
+        api_key=settings.llm_api_key if settings.llm_api_key else None,
     )
 
     memory_config = MemoryConfig(

@@ -6,7 +6,7 @@ from core.prompt_templates import initialize_prompt_template_manager
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=logging.INFO, format="%(asctime)s-%(name)s-%(levelname)s-%(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -37,8 +37,7 @@ def custom_prompt_editor(current_template=None):
         st.subheader("Custom Template Editor")
 
         template_name = st.text_input("Template Name", value=template_name)
-        template_desc = st.text_area(
-            "Description", value=template_desc, height=70)
+        template_desc = st.text_area("Description", value=template_desc, height=70)
         template_content = st.text_area(
             "Template Content",
             value=template_content,
@@ -56,8 +55,7 @@ def custom_prompt_editor(current_template=None):
 
         if submit_template:
             # Parse variables
-            variables = [v.strip()
-                         for v in template_vars.split(",") if v.strip()]
+            variables = [v.strip() for v in template_vars.split(",") if v.strip()]
 
             # Create template
             template_id = prompt_template_manager.create_template(
@@ -70,8 +68,7 @@ def custom_prompt_editor(current_template=None):
             if template_id:
                 # Set as active
                 prompt_template_manager.set_active_template(template_id)
-                st.success(
-                    f"Template '{template_name}' created and activated!")
+                st.success(f"Template '{template_name}' created and activated!")
                 st.session_state["show_template_editor"] = False
                 st.rerun()
             else:

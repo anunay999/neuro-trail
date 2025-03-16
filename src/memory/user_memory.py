@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=logging.INFO, format="%(asctime)s-%(name)s-%(levelname)s-%(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -22,6 +22,7 @@ class Role(Enum):
 
 class UserPreference(BaseModel):
     """Model for user preferences derived from interactions."""
+
     role: Optional[str] = Role.USER.value
     content: Optional[str] = None
 
@@ -36,6 +37,7 @@ class UserMetadata(BaseModel):
 
 class UserProgress(BaseModel):
     """Model for tracking user progress towards goals."""
+
     goal_id: str
     goal_description: str
     start_date: datetime = Field(default_factory=datetime.now)
@@ -59,10 +61,12 @@ class UserMemory:
         self.memory_client = memory_client
         logger.info("UserMemory initialized with memory client.")
 
-    def store_chat_interaction(self,
-                               messages: List[Dict[str, str]],
-                               user_id: str,
-                               metadata: Optional[Dict[str, Any]] = None) -> Dict:
+    def store_chat_interaction(
+        self,
+        messages: List[Dict[str, str]],
+        user_id: str,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> Dict:
         """
         Store a chat interaction between user and system.
 
@@ -81,21 +85,17 @@ class UserMemory:
             logger.debug("Metadata is None, initializing empty metadata.")
 
         # Add timestamp if not present
-        if 'timestamp' not in metadata:
-            metadata['timestamp'] = datetime.now().isoformat()
-            logger.debug(
-                f"Added timestamp to metadata: {metadata['timestamp']}")
+        if "timestamp" not in metadata:
+            metadata["timestamp"] = datetime.now().isoformat()
+            logger.debug(f"Added timestamp to metadata: {metadata['timestamp']}")
 
         # Add memory type
-        metadata['memory_type'] = MemoryType.USER.value
-        metadata['interaction_type'] = 'chat'
-        logger.debug(
-            f"Added memory_type and interaction_type to metadata: {metadata}")
+        metadata["memory_type"] = MemoryType.USER.value
+        metadata["interaction_type"] = "chat"
+        logger.debug(f"Added memory_type and interaction_type to metadata: {metadata}")
 
-        response = self.memory_client.add(
-            messages, user_id=user_id, metadata=metadata)
-        logger.info(
-            f"Chat interaction stored. Response from memory client: {response}")
+        response = self.memory_client.add(messages, user_id=user_id, metadata=metadata)
+        logger.info(f"Chat interaction stored. Response from memory client: {response}")
         return response
 
     def get_user_profile(self, user_id: str, limit: int = 5) -> List[Dict]:
@@ -113,16 +113,14 @@ class UserMemory:
 
         # Search with a narrowed query that focuses on chat interactions
         search_results = self.memory_client.search(
-            "user profile interaction_type:chat",
-            user_id=user_id,
-            limit=limit
+            "user profile interaction_type:chat", user_id=user_id, limit=limit
         )
-        logger.info(
-            f"Search results for relevant chat history: {search_results}")
+        logger.info(f"Search results for relevant chat history: {search_results}")
 
-        if search_results and search_results.get('results'):
+        if search_results and search_results.get("results"):
             logger.info(
-                f"Found {len(search_results['results'])} relevant chat history entries.")
-            return search_results['results']
+                f"Found {len(search_results['results'])} relevant chat history entries."
+            )
+            return search_results["results"]
 
         return []

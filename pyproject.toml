@@ -23,6 +23,9 @@ dependencies = [
     "rank-bm25>=0.2.2",
     "google-generativeai>=0.8.4",
     "bs4>=0.0.2",
+    "smolagents[gradio]>=1.11.0",
+    "gradio>=5.21.0",
+    "langchain-chroma>=0.2.2",
 ]
 
 [project.packages]
